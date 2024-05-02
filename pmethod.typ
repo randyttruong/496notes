@@ -7,7 +7,7 @@
 )
 
 #align(center, text(32pt)[
-  The Probabilistic Method Notes
+  COMP_SCI 496: Graduate Algorithms Notes 
 ])
 
 #align(center, text(16pt)[
@@ -18,6 +18,11 @@
   26 April 2024
 ])
 
+#show par: set block(spacing: 0.65em)
+#set par(
+  first-line-indent: 1em,
+  justify: true,
+)
 #let var = math.italic
 
 #pagebreak()
@@ -44,7 +49,23 @@ the following property:
 of vertices $V' subset.eq V$, as being the subgraph $G' = (V', E')$
 in which all $e' in E'$ must have both endpoints $r'_1, r'_2 in V'$.]
 
-== 
+== Graph Orientations 
+/ Orientation: #[Given an undirected graph $G$, an _orientation_ 
+of the graph $G$ would be the resulting graph in which we assign 
+each edge a direction, resulting in a directed graph.]
+
+== Tournaments 
+/ Tournaments: #[Given a set of vertices $V$, a tournament of 
+$V$, denoted as $T$ on $V$, is an _orientation_ of the 
+vertices, such that the resulting graph is connected.]
+  - #[Note, in a tournament, two endpoints $i, j$ can only 
+    have a single edge between them, in which $i arrow.r j$
+    or $j arrow.r i$, but not both]
+
+== Dominating Sets 
+/ Dominating Set: #[A _dominating set_ of an undirected graph 
+$G = (V,E)$ is a set $U subset.eq V$ such that every 
+vertex $v in V - U$ has at least one neighbor in $U$. ]
 
 #pagebreak()
 = Chapter 1: The Basic Method 
@@ -165,4 +186,70 @@ which, which is more effective than just trying to deterministically create one]
  effective to find a good coloring (a non-monochromatic induced graph)
  by just letting a fair coin toss decide on how to color the nodes]
 
+== Second Look at the Probabilistic Method 
+=== Property $S_k$ 
+#[We state that a tournament $T$ has the property 
+$S_k$ if and only if, for every set of $k$ Players, there 
+is one that beats them all.]/
+- #[Formally, this would mean that given a tournament $T = angle.l V, E angle.r$ 
+  and subsets $K$ of size $k$
+  $
+    exists v in T - K : (v, k) forall k in K 
+  $
+  ]
+
+#[_*Claim.* Is it true that for every finite $k$ that there exists 
+a tournament $T$ (on more than $k$ vertices) with the property 
+$S_k$?_]
+
+#[*Proof.* In order to prove this, let us consider a random tournament $T$. 
+\ \ 
+Given this random tournament $T$, let's determine the probability that 
+a node $v$ in $T-K$ beats all of the nodes $j in K$. This is a difficult 
+probability to calculate, however, and it is
+this probability as the complement of its negation (that there isn't a node 
+in $V-K$ that beats all the nodes $j in K$). 
+
+Let us find probability that a fixed node $v$ in $V-K$ 
+beats all the nodes $j in K$.
+- *Remark.* Because $T$ is a tournament, we know that 
+  if we're considering a vertex $v$, it must be connected 
+  to all of the nodes within the subset $K$. Thus, there 
+  is a $1/2$ probability with which the edge with endpoints 
+  $v, j : j in K$ is directed $v -> j$. 
+  - Since there are $k$ nodes in $K$ and that the event 
+    of $v$ beating a vertex $j$ is independent, then we just
+    find the product 
+$
+  Pr(v "beats them all") arrow.r product_(1)^(k) (1/2) -> (1/2)^k  arrow.l.r (2)^(-k)
+$
+    
+From this, it follows that the probability that $v$ doesn't beat them all 
+is given by 
+$
+  Pr(v "does not beat them all") &= \ 
+  &= (1 - Pr(v "beats them all")) \ 
+  &= (1 - 2^(-k))
+$
+Now, we simply just need to find the probability that 
+_any_ fixed $v$ doesn't beat them all. 
+
+$ 
+  Pr("no vertex beats them all") &= \ 
+  &= ("number of possible" v in V-K) \
+  & times Pr(v "doesnot beat them all") \ 
+  &= product_(v in V-K) Pr(v "does not beat them all") \ 
+  &= product_(v in V-K) (1 - 2^(-k)) \ 
+  &= (1-2^(-k))^(n-k)
+$
+
+Finally, we just need to consider this scenario 
+for all subsets $K$ of size $k$ in $V$ 
+
+$
+  sum_(K subset V \ |K|=k) Pr("no vertex beats them all") &= \ 
+&= mat(n; k) Pr("no vertex beats them all") \ 
+&= mat(n;k ) (1-2^(-k))^(n-k)
+$
+    ]
 
