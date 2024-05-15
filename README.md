@@ -1,5 +1,5 @@
 # COMP_SCI 496: Graduate Algorithms Notes 
-These are my notes for the "Graduate Algorithms" course offered at Northwestern University 
+These are my notes for the _Graduate Algorithms_ course offered at Northwestern University 
 Spring 2024. This course is just an introductory course in upper-level algorithm 
 analysis. 
 
@@ -26,13 +26,15 @@ more studying in order to better understand the material lol.
 - L09: Introduction to Streaming Algorithms 
 - L10: The Misra-Gries Algorithm
 - L11: Count-Min Sketch and the Counting Distinct Elements problem 
-- L12: TODO 
+- L12: HyperLogLog
+- L13: Online Algorithms Introduction
+- L14: Online Algorithms Part 2 
+- L15: Introducing Approximation Algorithms and FPT Algorithms
 
 
 ## Additional funsies 
-Because I don't know that much about math, I also examined 
-the following books in order to get myself up to speed 
-in combinatorics, probability, and probabilistic methods 
+these are some pretty good books for getting up to 
+speed in combinatorics, probability, and probabilistic methods 
 in combinatorics. 
 
 - `A Walk Through Combinatorics` by Miklos Bona 
