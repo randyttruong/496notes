@@ -1,8 +1,14 @@
 #let var = math.italic
 
 #let bl  = [#h(0.35cm)]
+#let sc = smallcaps
 
-#let qt(x) = "\"" + [#x] + "\""
+
+#let qt(x) = [
+  #v(0.5cm)
+  #align(center)[#text(style: "italic")[#x]]
+  #v(0.5cm)
+]
 
 #let uC = counter("unit")
 
@@ -26,13 +32,6 @@
   c: counter("thm")
 )
 
-#let clmProps = (  
-  fill: rgb(245, 222, 255),
-  outline:  rgb(124, 17, 171),
-  color: rgb(83, 0, 120),
-  c: counter("clm")
-)
-
 #let lemProps = ( 
   fill : rgb(255, 255, 225),
   outline : rgb(200, 200, 100),
@@ -46,6 +45,13 @@
   color: rgb(50, 50, 50), 
 )
 
+#let clmProps = (  
+  fill: rgb("#EDCCFC"),
+  outline: rgb("#7C11AA"),
+  color: rgb("#530077"), 
+)
+
+
 #let corProps = ( 
   fill: rgb(255,239,224), 
   outline: rgb(255,162,81), 
@@ -53,11 +59,63 @@
   c: counter("cor")
 )
 
+#let algDfnProps= ( 
+  fill: rgb("#C9DEBE"),
+  outline: rgb("#4A5246"),
+  color: rgb("#4A5246"),
+  c: counter("alg"),
+)
+
+#let pbProps = (
+  fill: rgb(255, 212, 223),
+  outline: rgb(224, 52, 98) , 
+  color: rgb(163, 38, 71),
+  c: counter("pb"),
+)
 
 #let proof_outline = stroke(thickness: 1pt, paint: rgb(255,100,100))
 
+#let pb(key, body) = {  
+  rect(
+    fill: pbProps.at("fill"),
+    inset: 12pt,
+    radius: 4pt,
+    width: 100%,
+    stroke: pbProps.at("outline"),
+    text(pbProps.at("color"))[
+      #pbProps.c.step()
+      #[*Problem Statement #pbProps.c.display()*] #[*(#key).*] #align(left, [#body])],
+  )
+}
+
+#let todo() = {  
+  rect(
+    fill: corProps.at("fill"),
+    inset: 12pt,
+    radius: 4pt,
+    width: 100%,
+    stroke: corProps.at("outline"),
+    text(corProps.at("color"))[
+      #corProps.c.step()
+      #align(center)[#text(36pt)[TODO]]],
+  )
+}
+
+
+#let algDfn(key, body) = {  
+  rect(
+    fill: algDfnProps.at("fill"),
+    inset: 12pt,
+    radius: 4pt,
+    width: 100%,
+    stroke: algDfnProps.at("outline"),
+    text(algDfnProps.at("color"))[
+      #algDfnProps.c.step()
+      #[*Algorithm Intuition #algDfnProps.c.display()*] #[*(#key).*] #align(left, [#body])],
+  )
+}
+
 #let dfn(key, body) = {
-  v(0.5cm)
   rect(
     fill: dfnProps.at("fill"),
     inset: 12pt,
@@ -68,10 +126,21 @@
       #dfnProps.c.step()
       #[*Definition #dfnProps.c.display()*] #[*(#key).*] #align(left, [#body])],
   )
-  v(0.5cm)
 }
+
+#let clm(body) = {
+  rect(
+    fill: clmProps.at("fill"),
+    inset: 12pt,
+    radius: 4pt,
+    width: 100%,
+    stroke: clmProps.at("outline"),
+    text(clmProps.at("color"))[
+      #[*Claim.*] #align(left, [#body])],
+  )
+}
+
 #let rmk(key, body) = {
-  v(0.5cm)
   rect(
     fill: rmkProps.at("fill"),
     inset: 12pt,
@@ -81,13 +150,11 @@
     text(rmkProps.at("color"))[
       #[*Remark*] #[*(#key).*] #align(left, [#body])],
   )
-  v(0.5cm)
 }
 
 
 #let thm(key, body) = {
   set text(black)
-  v(0.5cm)
   rect(
     fill: thmProps.at("fill"),
     inset: 12pt,
@@ -96,26 +163,10 @@
     stroke: thmProps.at("outline"),
     text(thmProps.at("color"))[#[*Theorem*] #[*(#key).*] #align(left, [#body])],
   )
-  v(0.5cm)
-}
-
-#let clm(body) = {
-  set text(black)
-  v(0.5cm)
-  rect(
-    fill: clmProps.at("fill"),
-    inset: 12pt,
-    radius: 4pt,
-    width: 100%,
-    stroke: clmProps.at("outline"),
-    text(clmProps.at("color"))[#[*Claim.*] #align(left, [#body])],
-  )
-  v(0.5cm)
 }
 
 #let lem(key, body) = {
   set text(black)
-  v(0.5cm)
   rect(
     fill: lemProps.at("fill"),
     inset: 12pt,
@@ -124,12 +175,10 @@
     stroke: lemProps.at("outline"),
     text(lemProps.at("color"))[#[*Lemma*] #[*(#key).*] #align(left, [#body])],
   )
-  v(0.5cm)
 }
 
 #let cor(key, body) = {
   set text(black)
-  v(0.5cm)
   rect(
     fill: corProps.at("fill"),
     inset: 12pt,
@@ -138,12 +187,10 @@
     stroke: corProps.at("outline"),
     text(corProps.at("color"))[#[*Corollary*] #[*(#key).*] #align(center, [#body])],
   )
-  v(0.5cm)
 }
 
 #let nt(body) = {
   set text(black)
-  v(0.5cm)
   rect(
     fill: ntProps.at("fill"),
     inset: 12pt,
@@ -152,13 +199,12 @@
     stroke: ntProps.at("outline"),
     text(ntProps.at("color"))[#[*Note.*] #align(left, [#body])],
   )
-  v(0.5cm)
 }
 
 #let proof(key, body) = {
   set text(black)
   [#[_*#key.*_] \ #body]
-  align(right)[$qed$]
+  [$qed$]
 }
 
 #let ex(key, body) = {  
@@ -197,9 +243,8 @@
   cC.step()
   align(center, text(size:24pt, fill: gradient.linear(..color.map.plasma))[Chapter #context cC.display()\: \ #title])
   v(0.5cm)
-  align(center, line(length: 85%, stroke: 1pt))
-  v(1cm)
 }
+
 
 #let qsProps = ( 
   hFill: rgb(176, 185, 255),
@@ -231,13 +276,4 @@
   [#text(size: 9pt)[#emph(body)]],
   ))
 }
-
-#let qt(body) = { 
-  v(0.5cm)
-  align(center)[
-    #emph(body)
-  ]
-  v(0.5cm)
-}
-
 

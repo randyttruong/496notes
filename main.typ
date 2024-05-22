@@ -7,6 +7,8 @@
   y: 2cm,
 ))
 
+#let def = $eq.delta$
+
 
 
 #titlePage[COMP_SCI 496: Graduate Algorithms][Randy Truong][Spring 2024]
@@ -273,7 +275,7 @@ $
 #pagebreak()
 #chap[Balls and Bins (TODO)]
 #pagebreak()
-#chap[Power of Random Choices (TODO)]
+#chap[Power of Random C=hoi es (TODO)]
 #pagebreak()
 #chap[Power of 2 Random Choices (TODO)]
 
@@ -1239,9 +1241,729 @@ $(1/e)^k$.
 
 
 #pagebreak()
-#chap[Optimizing LRU Caching via Resource Augmentation (05/14/24)]
+#chap[FPT Algorithms (Part 2) (05/16/24)]
 = Reminders 
+- For HW3 
+  - Questions about Q1 
+    - #[Aim is to show that if you don't use a randomized routing approach, then delay suffers 
+    and will be $O(d)$ with high probaiblity and worsens exponentially]
+    - #[Demonstrate that $O(k)$ for randomized approach and $Omega(2^k)$ for 
+    the naive/greedy approach]
+
+    - We want to find the *optimal* algorithm for Q2 
+    - ie, the most optimal _deterministic_ and _randomized_ strategies
+  - For Q3
+    - We want a 2-competitive algorithm (ie, the competitive ratio is $1/2$)
 - Homework 03 is due Friday (with extension to Monday)
+= Remark 
+  - #[We previewed the color-coding technique in the last lecture:]
+#rmk[Color-Coding FPT Algorithm][We can utilize two variants of color coding: 
+
+  - #[*Basic.* We color the graph randomly, determining that a good path 
+was one in which all vertices $v_1, dots, v_k in P$ were colored 
+$1, dots, k$.]
+    - #[Time complexity of $(k^k times ln(1/delta) times O(m))$]
+
+  - #[*Optimized.* We color the graph randomly, determining that a good 
+path was one in which all vertices $v_1, dots, v_k in P$ were colored 
+_distinctly_.]
+    - #[Time complexity of $(e^k times ln(1/delta) times O(m))$]
+]
+= Outline of Lecture
+#[Today's lecture, we basically just finished up the discussion on FPT 
+algorithms. We first revised the FPT algorithm for the $k$-paths problem 
+as well as how to apply it to the Hamiltonian-path problem. Then we discussed 
+a new problem that can be optimized utilizing FPT algorithms:
+
+  - #[Vertex Cover]
+    - #[Utilizes a technique called _kernelization_ in order 
+to solve]
+which we then just used to motivate approximation 
+algorithms, which 
+offer us a different insight on solving the problem. 
+Finally, we concluded
+this lecture by discussing the *set cover problem* which 
+we also evaluate using 
+approximation algorithms.]
+= Vertex Cover Problem 
+== Introduction to Kernelization 
+*Kernelization* is a technique that is employed with 
+FPT (or generally parameterized) algorithms.
+
+#par[The primary intuition about kernelization is that 
+we want to be able to take a problem, which we will denote as 
+$Q$, and make an argument about an equivalent problem, of which
+we can make the same argument about the original problem.]
+
+\
+
+#nt[Honestly, sounds a little fake, but as with most combinatorics/
+discrete math-related arguments, it works.
+
+#qt[
+    ...(the "probabilistic method" is another fake argument btw)...
+  ]
+]
+
+#par[In kernelization, we call equivalent problems _instances_.]
+== Defining Kernels
+
+Not to be confused with _literally every other definition 
+of a kernel in computer science_, kernelization is a _paradigm 
+for solving parameterized problems_.
+
+
+#par[From _Parameterized Algorithms_ by 
+Fedor V. Fomin and Lokshtanov:]
+
+#dfn[Kernelization][
+  A _kernelization algorithm_, or simply a kernel, for a 
+  parameterized problem $Q$ is an algorithm $cal(A)$ that, 
+  given an instance $(I, k)$ of $Q$, works in polynomial 
+  time and returns an equivalent instance $(I', k')$ of 
+  $Q$ (Fomin et. Lokshtanov).
+
+
+]
+  #nt[It is required that size $(k)_cal(A) <= g(k)$
+  for some computable function $g: NN -> NN$. We can 
+  essentially think of $g$ as some computable function 
+  on $k$.
+  ]
+
+#dfn[Reduction Steps][
+  A reduction rule for a parameterized problem $cal(Q)$
+  is a function $phi.alt$ such that 
+  $
+  phi.alt: Sigma^* times NN => Sigma^* times 
+  NN
+  $ 
+  maps an instance $(I, k) in Q$ to an equivalent 
+  instance $(I, k')$ of $Q$ such that $phi.alt$ can 
+  be computed in $|I|$ and $k$ time. 
+]
+
+#thm[Safe and Soundness Rule][
+  We state that two instances of a problem $Q$ are 
+  equivalent if $(I,k) in Q$ if and only if $(I, k') in Q$
+
+]
+
+Essentially, we can think of kernelization algorithms as 
+algorithms that utilize _reduction rules_ in order to 
+reduce the a problem instance it into its "computationally
+difficult 'core' structure". 
+
+- #[In other words, kernelization just algorithmically 
+reduces a problem down into simpler instances until we reach
+the crux of the problem. We do this to make finding the 
+true answer easier and more systematic.]
+
+
+
+== Introduction to Vertex Covers 
+
+=== Definitions 
+#[In order to evaluate this problem, we first need 
+a notion of what exactly a vertex cover is. ]
+
+#dfn[Vertex Cover][Given a graph $G = angle.l V, E 
+  angle.r$, a *vertex cover* of $G$ is a subset of 
+  vertices $cal(S) subset.eq V_G$ that includes all 
+  unique endpoints of every edge in $G$ at least once. 
+
+  Mathematically, this can be denoted as
+  $
+  "cover"(G) = [S subset.eq V_G | forall (u,v) in E_G (u in cal(S)) or (v in cal(S))
+  or (u, v in cal(S))]
+  $
+
+  #[For the purposes of the problem and its corresponding FPT 
+  algorithm, we will let $(G^((i)), k^((i)))$ represent the $i$th 
+  vertex cover (in the sequence of generated vertex covers) of 
+  size $k$.]
+  
+]
+=== Example
+*Example 1.* Here is a 2-graph: 
+#let data = ([Dmitrii], [Konstantin])
+#align(center + horizon)[
+#figure(
+canvas(length: 1cm, {
+  import draw: *
+
+  set-style(content: (padding: .2),
+    fill: red.lighten(70%),
+    stroke: red.lighten(70%))
+
+  tree.tree(
+    data, 
+    direction: "right",
+    spread: 2, 
+    grow: 3, 
+    draw-node: (node, ..) => {
+      circle((), radius: 0.85, stroke: none)
+      content((), node.content)
+    }, 
+    draw-edge: (from, to, ..) => {
+      line((a: from, number: .95, b: to),
+          (a: to, number: .95, b: from), )
+    }, 
+    name: "tree")
+
+  // Draw a "custom" connection between two nodes
+  // let (a, b) = ("tree.0-0-0", "tree.0-0-1",)
+  // line((a, .6, b), (b, .6, a), mark: (end: ">", start: "|"))
+}),
+  )
+]
+$G$'s vertex cover could be 
+  $
+    &var("cover")(G) = {"Dmitrii"} \
+    or &var("cover")(G) = {"Konstantin"}
+  $
+
+since the edge that "Dmitrii" and "Konstantin" are incident to 
+also connects their neighbor "Dmitrii" and "Konstantin," respectively.
+
+#nt[If it wasn't clear, we just want the vertices such that 
+the connected edges to these vertices connects all of 
+the other edges in the graph.]
+
+= #sc[Minimum Vertex Cover] Problem Statement
+#pb[#sc[Miminum Vertex Cover] Problem][Given a graph $G = angle.l V, E angle.r$, find 
+  the minimum size vertex cover.  ]
+
+
+= FPT Algorithm Approach
+#rmk[FPT Algorithms][FPT algorithms are algorithms that are able to 
+  minimize the runtime of an NP-hard problem. They do this by 
+  reducing the exponential time $O(c^n)$ to one that is dependent on some 
+  parameter $k$. The runtime of such algorithms is defined as: 
+  $
+  f(k) times var("poly")(n)
+  $
+  where $k$ is some _fixed parameter_ of the problem (which is problem/instance-
+  dependent) and $n$ is the size of the input/universe.
+]
+
+== Algorithm Intuition 
+In our FPT solution for the Vertex Cover problem, we employ 
+_two_ reduction steps that, informally: 
+
+  + #[Eliminate all _unnecessary vertices_ from the problem space
+and the solution]
+  + #[Add all vertices that are _guaranteed_ to be in the solution.]
+
+#nt[Given that we are restricting the input space to a constant 
+$k$ which is fixed, we are able to freely perform a _brute
+force_ algorithm on the input space, since it'll always 
+be upper bounded by an algorithm on $n$.]
+
+== Algorithm Design
+#[Given the vertex cover problem, which we will denote as a problem 
+$cal(Q)$, we define the two following reduction rules for 
+an instance $(G^((i)), k^((i)))$, where $(G^((i)), k^((i)))$
+is defined as the $i$th vertex cover of $G$ that is of 
+size $k$.
+- #[*Reduction Rule 1.* If the $i$th vertex cover on $G$ of size $k$ possesses 
+an isolated vertex $v$, then remove $v$ from the graph. The 
+new instance is represented as $(G-v, k).$]
+- #[*Reduction Rule 2.* If there exists a vertex $v in G^((i))$ such that 
+$var("deg")(v) > k^((i))$, then delete $v$ and its incident 
+edges from $G$ and decrement the parameter $k$ by 1. The resulting 
+instance is $(G-v, k-1).$]
+
+#[We observe that Reduction Rule 2 really just follows from the following 
+claim:  
+#clm[If $G$ contains a vertex whose degree is at least $k$,
+then $v$ should be in every vertex cover of size at most $k$.]
+]
+ 
+Utilizing these two reduction rules we perform the following 
+algorithm:  
+#v(0.5cm)
+```
+while kernel K is a valid cover 
+  randomly choose k or k' vertices 
+  if k or k' vertices are a valid vertex color do 
+    continue
+  end
+
+  return
+end
+```
+#v(0.5cm)
+
+]
+
+- #[2 Instances]
+  - #[We want to use some reduction steps]
+  - #[Guarantee that if the original instance has some solution of $k$, then 
+  all other instances should have such a solution.]
+  - #[Likewise, if we know the solution for various instances, then we know 
+  the solution to global]
+  - #[Instances will have a size of $k$ (in the context of this problem, 
+we shall use size $k^2$)]
+
+- Overview 
+  - #[Utilize a sequence of reductions that reduce teh global problem into 
+  variuos instances/sketches]
+    - #[We call these smaller instances of the problem _kernels_, such 
+    that the size of each kernel is $<= g(k)$]
+    - #[With these kernels, we can utilize a _brute force algorithm_]
+      - #[Randomly choose $k$ or $k'$ vertices and just verifying if 
+      they're a valid cover]
+      - #[This is fine because the algorithm is dependent on $k$, rather 
+      than $n$]
+      - #[Exponential on $k$]
+      - #[We want to utilize an inductive argument, as if there's a solution for 
+one kernel of size $*$, then it should hold for the next, etc.]
+
+#nt[Why is this better than greedy?...]
+
+#rmk[Kernelization][]
+
+== Argument Outline
+We utilize *two rules*:
++ #[If $(G^(i), k^(i))$ (the $i$th vertex cover of size $k$) has 
+isolated vertices, then remove them]
+  - #[This doesn't affect the instance-- since there would never 
+  be a reason why we would want to keep them, since they won't affect 
+  the result]
+#nt[Duh, why would include vertices that don't matter?]
+#nt[This is recursive. We will use the $(i-1)$th vertex cover in order 
+to derive the $i$th vertex cover]
++ #[If there exists a vertex $v in G^i$ such that $var("deg")(v) > k^i$,
+then we will add $v$ to the solution and remove $v$ and all 
+edges incident with it from $G$]
+
+#nt[If we have many edges that are incident to $u$, then just 
+remove $u$ and all edges that are incident with it. This will 
+result in various isolated vertices, which can be removed by rule (1)]
+
+== ...why does this work?
+#rmk[][We want a solution that is of cost at most $k$. If there's 
+a good vertex candidate-- just remove it since we know it must 
+be in the answer (or a valid answer).]
+=== Recurrence Relation 
+$
+G^((i+1)) = &(G^((i)) - u) \ and (&k^((i+1)) = k^((i)) - 1)
+$
+
+#[There must be $k^i$ edges incident to $u$. If not, then we would _eventually_
+remove the other vertices-- which wouldn't be optimal.
+]
+
+- #[If there are multiple vertices $v_i$ that are incident to $> k^(i)$ edges,
+then we just remove all of them.]
+
++ #[If we can't apply rule (1) or rule (2):]
+  - #[If graph $|G^i| > (k^((i)))^2$, then _there is no solution_]
+  - #[Why is this the case?]
+
+#clm[If $G$ has $2^k^2$ vertices $->$ the number of edges in 
+$G>k^2$. If there exist a vetex cover of size $<= k$, then it cuases $G <= k^2$
+edges]
+== Approximation Algorithm Approach
+#unit[Approximation Algorithms][#figure(
+  image("./img/stonks.png"),
+  caption: [FFIE TO THE MOON],
+  )]
+#rmk[][We want to study approximation algorithms 
+because they provide a polynomial time way of computing 
+NP-hard problems.]
+#dfn[Approximation Algorithms][Algorithms that minimize cost such 
+that 
+  $
+  "minimize cost:" var("ALG")(I) <= alpha times var("OPT")(I) 
+  "maximize value:" var("ALG")(I) >= alpha times var("OPT")(I)
+
+  $
+  where $alpha$ is the _approximation factor/ratio_ such that 
+  $alpha <= 1$, and we strive for $alpha$ to be as close to 1 as 
+  possible.
+]
+
+= Strategy 1: Approximation Algorithm (#sc[Minimum Vertex Cover])
+
+```
+while exists (u,v) not covered by S: 
+  add both u and v to S
+```
+
+#clm[
+  Using the given strategy, 
+  $
+  var("ALG")(I) <= 2 times var("OPT")(I)
+  $
+]
+
+#todo()
+
+#proof[Proof][
+  _ALG_ considers edges $(u,v), dots, (u_k, v_k)$
+  $
+  u_i = u_j \ 
+  var("OPT")(S) >= k \ 
+  var("ALG")(S) = 2k
+  $
+]
+
+= Problem 2: #sc[Set Cover] Problem 
+#pb[#sc[Set Cover]][
+  Given a universe $Omega = {u_1, dots, u_n}$ and a collection of subsets 
+  $cal(S) = {S_1, dots, S_2}$ where $S_i subset.eq Omega$ for $1 <= i <= n$,
+  find a minimum-size subcollection of $cal(C) subset.eq cal(S)$ such that 
+  $
+  union.big_(S_i in cal(C)) S_i = Omega
+  $]
+#thm[][The $ln(n)$-approximation algorithm for $n = |Omega|$.]
+
+== Algorithm Intuition 
+- First apply greedy 
+  - Get the largest set first 
+
+```
+while (v_t != 0) 
+  find S_i that covers most elements in U_t
+  add it to the solution
+  v_t+1 = v_t \ S_i
+  t = t + 1 
+```
+
+#proof[][
+  We let $k=var("OPT")$. One set in _OPT_ has a size $>= n/k$. 
+  We observe that _ALG_ picks a set of size $>= n/k$, such that 
+$
+V_1 &= V_0 minus S_i \ 
+  |V_1| &= n - |S_i| <= n - n/k = n(1 - 1/k) \ 
+  |V_2| &<<  (1-1/k) |V_1|  << (1-1/k)^2 times n   \ 
+  |V_i| &<= (1-1/k)^i times n \
+  (1-1/k)^(k ln(n)) &< 1/n
+
+
+
+
+$
+
+]
+
+#pagebreak()
+#chap[Approximation Algorithms Pt. 2 
+  (05/17/24 Lecture)]
+= Citations 
++ _Approximation Algorithms _ (Vijay V. Vazirani)
+
+  - Chapters Referenced 
+     + Chapter 1 (#sc[Introduction])
+      - #sc[An approximation algorithm for cardinality vertex cover ] (page 3)
+     + Chapter 2 (#sc[Set Cover]) (pgs. 15-26)
+     + Chapter 14 (#sc[Rounding Applied to Set Cover]) (pgs. 119-124)
+= Remarks 
+- Homework 4 assigned (due 05/31/24)
+  - Problem 1 is about LRU Cache 
+  - Problem 2 is similar to the FPT problems discussed in class 
+    - Discusses a problem about *Contracting Edges*
+    #dfn[*Contracting Edges*][Given two connected vertices, 
+we contract the edge between them by removing that edge between them 
+and then treat both vertices as the same vertex]
+  - #[Problem 3 is going to cover one of today's problems, the "edge-deletion 
+  to make a graph triangle free" problem]
+
+#nt[Today we are going to be discussing linear programmming (which will 
+  be utilized in problem 3 on the homework)]
+
+= Last Time 
+
+#rmk[#sc[Set Cover] Problem][
+  #qt[
+    Given two sets within a universe $Omega$ such that $|Omega| = n$. 
+    Assume that if we choose all sets that we will seleect all of 
+    the elements within $Omega$
+  ]
+]
+
+= Lecture Skeleton
++ #[#smallcaps[Weighted Set Cover] problem ]
+  - Variation on #sc[Set Cover] problem 
+  - Discuss traditional approximation algorithm solution 
+  - Discuss _linear programming_ solution
+
++ #[Linear Programming] 
+  - very informal definition in-class, formalities included post-lecture (thanks future-randy)
+
++ #sc[Minimum Triangle-Free Edge-Deletion] problem 
+  - Discuss linear programming solution 
+
+
+= #sc[Set Cover with Weights] Problem 
+
+
+== Problem Statement (#sc[Set Cover with Weights] Problem)
+#rmk[#sc[Set Cover] Problem][
+  #qt[
+    Given a universe $Omega = {u_1, dots, u_n}$ and a collection of 
+    subsets $cal(S) = {S_1, dots, S_2}$ where $S_i subset.eq Omega 
+    $ for $1 <= i <= n$, find a minimum-size subcollection of 
+    $cal(C) subset.eq cal(S)$ such that]
+  $
+  union.big_(S in cal(C)) S = Omega
+  $
+]
+#pb[#[Weighted Set Cover] Problem][Utilizing the #sc[Set Cover] problem, suppose now that each set 
+  $S_i in cal(S)$  has a corresponding weight $w_i$. Find a minimum-size 
+  subcollection $cal(C) subset.eq cal(S)$ in order to cover the universe $Omega$ while 
+  minimizing the total subcollection's weight.
+  $
+  sum_(i) w_i : S_i subset.eq cal(C)
+  $]
+
+== Proof Strategy (#sc[Set Cover])
+#nt[Our basic strategy is to find the sets that cover the most amount 
+of elements with the minimum possible cost. ]
+- Utilize induction
+- Determine that after $t$ steps, _ALG_ _does not_ cover 
+$
+e^(-w_t/var("OPT")) times n "elements"
+$
+
+This is pretty straightforward (supposedly lol)
+
+However, we'll learn an alternative method utilizing *linear programming*
+
+#rmk[Linear Programming][(will discuss next time)]
+
+= Linear Programming/Integer Programming Approach
+- But why use linear programming since there's another approximation approach? 
+  - #[An LP interpretation of the problems can be solved via IP solvers, 
+  which can be solved faster than a pure combinatorial approach]
+    - #[A "good-enough" solution that can be solved in _polynomial time_]
+  - #[We are able to "relax" the problem]
+    - #[We can replace constraints to make the problem easier]
+
+
+#nt[Our intuitoin is to think of our set as a set of _equations_]
+
+We are now going to consider some indicator varaibles such that  
+
+$ 
+x_i = cases(
+  1 "if" s_i "is in the solution", 
+  0 "otherwise"
+)
+$
+We want to minimize 
+$
+sum_(i) w_i times x_i
+$ <sum1>
+
+by the way of linear programming, we are able to add _linear constraints 
+and equations_. 
+
+Thus, for @sum1, we want to find all $u in Omega$, such that 
+$
+sum_(i : u in s_i) x_i >= 1 
+$
+
+The value of @sum1 would correspond to _some_ combinatorial solution, 
+which is true since @sum1 is only true if $x_1$ corresponds to 1.
+
+Let us now relax the problem such that $x in.not {0,1} $, but 
+$x in [0,1]$ such that 
+$
+$
+
+#dfn[Linear Programming (Informal)][A set of linear constriants on some 
+  variables $x_1, ..., x_n$. 
+THis is similar to linear equations (which contains equalities) such as 
+$
+  A times x  = B
+$
+  where $A$ is a matrix and $x$ is a set of variables 
+
+whereas for linear programming, we have 
+  $
+  A times x >= B
+  $
+  with an additional constraint $angle.l c, x angle.r$ such that 
+  $
+  c^t times x = sum_(i) c_i x_i "where" x >= 0 
+  $
+]
+
+If the non-LP interpretation of the problem is feasible by the original LP 
+problem, it stays feasible by the LP-relaxed problem.
+
+#thm[][The optimal value of the LP problem, denoted as _LP_,
+
+  $
+  var("LP") <= var("OPT")
+  $
+  where _OPT_ represents the optimal solution to the combinatorial problem.
+]
+
+#rmk[][_OPT_ in this case represents the _cost_ of the problem.]
+
+We find that this is not going to be a big issue _unless_ _LP_ is significantly 
+lesser than that of _OPT_ (integrality gap).
+
+But how can we actually compare the solution of the LP problem with that 
+of the combinatorial problem?
+- We want to _encode_ the solutions of the combinatorial problem
+
+= LP-Based Approximation Algorithm for #sc[Set Cover]
+== Roadmap 
++ Solve the LP-problem 
+  - *Obj.* Acquire $x_1, dots, x_m$ where $0 <= x_i <= 1$
+  - But what exactly is a non-integral value of $x_i$?
+    - Philosphically, we can think of it as a probability that $i$ is in the set 
++ Select $S_i$ in the solution with probability $(x_i times ln(n)) or 1$
+  - Where $ln(n)$ is some multiplicative factor (that is usually small)
+  - lol where did this come from 
+
++ Two Possibilities 
+  - #[*Brute Force.* Be done here and repeat until a feasible solution is 
+calculated (ie, 
+all elements are covered)]
+  - #[*Randomized Rounding Technique.* For any element $u$ that is uncovered, 
+pick the cheapest set $S_i$ containing it and just add it to the solution]
+
+== Approach
++ Set a feasible solution with probability 1 
++ Evaluate the probability that after 
+$
+&Pr(u "is not covered (after step 2)") = Pr(forall i, u in S_i "where" S_i "is not chosen") \ 
+= &product_(i: u in S_i) Pr(S_i "is not chosen") \
+= &product_(i: u in S_i) (1 - x_i ln(n)) \
+$
+Assume that any term $(1 - x_i ln(n)) >= 0$ 
+$
+&= product_(i: u in S_i) max(1 - x_i ln(n), 0) \
+$
+Using the inequality that $e^(-t) >= 1-t$, 
+
+$
+  &<= product_(i : u in S_i) e^(-x_i ln(n)) \
+$
+
+#[
+#show math.equation: set text(size: 15pt)
+$
+  &<= e^(- sum_(i: u in S_i) x_i ln(n))
+  &<= e^(-ln(n)) = 1/n
+$
+]
+
+Let us now consider the cost of the LP solution
+
+#rmk[][Cost of sets included in step 2]
+$
+&EE["cost at Step 2"] = (sum_i w_i times x_i) times ln(n) \ 
+= &"LP" times ln(n)
+$
+
+#rmk[][Cost of sets included in step 3]
+$
+&EE["cost at Step 3"] <= sum_(u in Omega) Pr(u "is not covered (after Step 2)") 
+times var("OPT") \ 
+<= &n times 1/n times var("OPT") = var("OPT")
+$
+
+where $sum_i w_i times x_i$ is our linear program expression.
+
+
+#nt[_OPT_ is not known by the algorithm. The algorithm doesn't need to know 
+it in this case ]
+
+= Minimum Triangle-Free Edge-Deletion Problem 
+#pb[#sc[Minimum Triangle-Free Edge-Deletion]][Given a graph $G$, find the minimum number of edges needed 
+  to make $G$ triangle-free.]
+
+To remove any confusion, if we had a graph 
+that had multiple triangles (ie, connected components containing 3 vertices),
+we just want to remove the minimum number of edges to remove those 
+connected components.
+
+== Motivation
+- #[Triangles are found constantly in _social networks_ for friend 
+recommendation, since we would want to find vertices (people) who are 
+adjacent to other people]
+
+= Solution Approach (Triangle-Free Edge-Deletion Problem)
+Here, we detail a linear/integer-programming based solution for the 
+triangle-free edge-deletion problem. 
+
+Let us first consider what exactly the solution to the equivalent 
+LP-problem would actually represent. 
+
+#clm[The solution to the triangle-free edge-deletion problem would be *the number 
+of edges* that need to be deleted in order to make the graph triangle-free.]
+
+
+== Linear Programming Construction (Triangle-Free Edge-Deletion Problem)
+#rmk[Soln. for the Triangle-Free Edge-Deletion Problem][The solution to the 
+  triangle-free edge-deletion problem would be *the number 
+of edges* that need to be deleted in order to make the graph triangle-free.]
+
+- Construct an LP for the problem 
+  - #[Construct an indicator varaible that indicates whether or not we should 
+delete an edge 
+  ]
+
+For an edge $e in E(G)$, we have the LP/objective function 
+$ 
+min sum_(e in E(G)) x_e : x_e in [0,1] "by our \"default constraint\""
+$ <tri1>
+Are there any other constraints that we can impose?  
++ For each triangle $(u, v, w)$, at least one edge _must_ be removed  
+  - (such that $ (u,v), (u,w), (v,w) in E(G)$)
+
+We can represent this as 
+$ 
+x_((u,v)) +  x_((v,v)) + x_((u,w)) >= 1 
+$ <tri2>
+
+thus, we utilize the objective function @tri1 with the new consraint @tri2. 
+
+#nt[]
+
+== Algorithm 
+#algDfn[Triangle Deletion LP Algorithm][
++ Solve the LP to obtain the optimal set of edges 
++ Delete all edges $(u,v)$ with $x_((u,v)) >= 1/3$
+]
+
+By utilizing this algorithmic solution, we will _not_ obtain a feasible 
+solution.
+
+#nt[For the homework, you want to modify this algorithm to achieve 
+a better approximation]
+
+== Discussing Feasibility of the Approximation Soluiton
+#rmk[][there r triangles in the graph]
+#[By our LP and its constraint, we know that for each edge, 
+its can either be part of triangle(s) or not (ie, it must be either $>= 
+1/3$ or $0$)]
+
+== The Cost of the LP Solution
+$
+&m' def "# edges whose value is " >= 1/3 \ 
+= &sum_((u,v) in E(G))
+$
+$
+&= var("ALG") = m'  \  
+&=var("OPT") >= var("ALG") >= m' / 3 \ 
+&= var("LP") >= sum_((u,v) in E(G)) x_((u,v)) 
+>= sum_((u,v) "is removed") x_((u,v)) >= m' times 1/3
+$ <70> 
+
+Thus by @70, $var("ALG") << 3 times var("OPT")$
+
+= Next Time 
+- LP-Duality
+
 #unit[Dynamic Graph Algorithms][]
+
 #chap[Graph Orienting]
 
