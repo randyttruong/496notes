@@ -21,12 +21,14 @@
 #let var = math.italic
 
 #set heading(
-  numbering: "1.1.1.1.1."
+  numbering: "1.1.1.1.1"
 )
 
 #set math.equation(
   numbering: "(1)"
 )
+
+#set enum(numbering: "(1).(a)")
 
 #set terms(
   separator: [. ]
@@ -1543,6 +1545,7 @@ remove $u$ and all edges that are incident with it. This will
 result in various isolated vertices, which can be removed by rule (1)]
 
 == ...why does this work?
+#todo()
 #rmk[][We want a solution that is of cost at most $k$. If there's 
 a good vertex candidate-- just remove it since we know it must 
 be in the answer (or a valid answer).]
@@ -1565,35 +1568,129 @@ then we just remove all of them.]
 #clm[If $G$ has $2^k^2$ vertices $->$ the number of edges in 
 $G>k^2$. If there exist a vetex cover of size $<= k$, then it cuases $G <= k^2$
 edges]
-== Approximation Algorithm Approach
+
 #unit[Approximation Algorithms][#figure(
   image("./img/stonks.png"),
-  caption: [FFIE TO THE MOON],
+  caption: [\$FFIE TO THE MOON],
   )]
-#rmk[][We want to study approximation algorithms 
+
+#chap[Approximation Algorithms]
+= Citations 
++ #[_Approximation Algorithms _ (Vijay V. Vazirani)]
+  - Chapters Referenced 
+     + Chapter 1 (#sc[Introduction])
+      - #sc[An approximation algorithm for cardinality vertex cover ] (page 3)
+     + Chapter 2 (#sc[Set Cover]) (pgs. 15-26)
+     + Chapter 14 (#sc[Rounding Applied to Set Cover]) (pgs. 119-124)
++ #[UW CSE 421: Introduction to Algorithms]
+  + #[Lecture 23: Approximation Algorithms (Set Cover)]
++ #[CMU 15-451/651: Design and Analysis of Algorithms]
+  + #[Lecture \#17: Approximation Algorithms]
+
+= Introduction 
+In this new section, we consider the design and analysis 
+of *Approximation Algorithms*, which is another 
+field of algorithms that tackles the issue of evaluating 
+NP-hard and NP-complete problems with "good-enough" 
+accuracy in polynomial time. 
+
+#rmk[Motivation for Approximation Algorithms][We want 
+  to study approximation algorithms 
 because they provide a polynomial time way of computing 
 NP-hard problems.]
-#dfn[Approximation Algorithms][Algorithms that minimize cost such 
-that 
+#dfn[Approximation Algorithms][#[Approximation algorithms are 
+  algorithms that both maximize a *cost ratio* as well 
+  as a *value ratio* such that 
   $
-  "minimize cost:" var("ALG")(I) <= alpha times var("OPT")(I) 
-  "maximize value:" var("ALG")(I) >= alpha times var("OPT")(I)
+  "Cost Ratio" = var("ALG")(I) &<= alpha times var("OPT")(I) \
+  "Value Ratio" = var("ALG")(I) &>= alpha times var("OPT")(I)
 
   $
   where $alpha$ is the _approximation factor/ratio_ such that 
   $alpha <= 1$, and we strive for $alpha$ to be as close to 1 as 
   possible.
+]]
+
+#nt[Whenever we discuss Approximation Algorithms, we will 
+consider each algorithm based on their $alpha$ factor. For 
+  an approximation algorithm _ALG_ that has an approximation 
+  factor of $alpha$, then we consider that algorithm 
+  to be $alpha$-approximate. 
+
+  Additionally, we will also consider algorithms of 
+  paritcular $alpha$-approximate ratios. For example, 
+  we might discuss 2-approximation algorithms.
+  + #[2-approximation algorithms]
 ]
 
-= Strategy 1: Approximation Algorithm (#sc[Minimum Vertex Cover])
+= (Re-)Introduction to the #sc[Minimum Vertex Cover] problem 
+#rmk[FPT Approximation Solution for #sc[Minimum Vertex Cover]][]
+#todo()
 
+
+#[Now that we have some exposure on how we can _FPT reduce_
+the #sc[Minimum Vertex Cover] problem in order to get 
+an exact solution in $f(k) + var("poly")(n)$ time, let 
+us now analyze various _approximation algorithms_
+techniques for evlauating the #sc[Minimum Vertex Cover]
+problem. 
+
+]
+
+== #[Approximation Strategies for #sc[Minimum Vertex Cover]]
++ #[*Strategy 1.* Greedy Approximation]
++ #[*Strategy 2.* LP-Relaxation Approximation]
+
+= #[Strategy 1: Greedy Approximation Algorithm (#sc[Minimum 
+  Vertex Cover])]
+#[This section discusses the Greedy Approximation Algorithm 
+strategy for evaluating the #sc[minimum vertex cover] problem.]
+
+#[As with most greedy algorithms, we can sum up the behavior 
+of this algorithm as simply just adding vertices $v in V(G)$
+as long as there exists an uncovered edge that is incident 
+to it. ]
+
+== Algorithm Intuition (#sc[minimum vertex cover])
+#int[If we pick an arbitrary edge $e in E(G)$, then we know 
+that any vertex cover $var("cover")(G)$ must contain 
+at least one of the endpoints of such an edge. Thus, 
+  add both endpoints to the solution, remove all edges covered
+  by these endpoints, and repeat.]
+
+Here is the pseudocode for the Greedy Approximation Solution: 
+
+#line(length:100%)
+```pseudocode
+while exists (u,v) in E(G) such that (u,v) not covered by S do 
+    S.add(u)
+    S.add(v)
+    remove all (m, n) in E(G) covered by S
+end
 ```
-while exists (u,v) not covered by S: 
-  add both u and v to S
-```
+#line(length:100%)
+
+Again, it is important to note that we are essentially doing 
+the following 
++ #[We iterate through all remaining edges in $G$] 
+  + #[If there is an edge in which at least one of the endpoints 
+  does not exist in $S$, then we just add the endpoints]
+  + #[Then, based on the new vertex cover $S$, remove all edges 
+  from the graph $G$ that are now covered by $S$]
+
+
+== Analysis (#sc[Minimum Vertex Cover])
+#[We find that based on the design of the algorithm, we 
+arrive at the following performance claim: 
+Claim
+]
+
+
 
 #clm[
-  Using the given strategy, 
+  #[Using the greedy approximation algorithm for the 
+  #sc[Minimum Vertex Cover] problem, we find that 
+the algorithm is 2-approximation. Mathematically: ]
   $
   var("ALG")(I) <= 2 times var("OPT")(I)
   $
@@ -1611,6 +1708,12 @@ while exists (u,v) not covered by S:
 ]
 
 = Problem 2: #sc[Set Cover] Problem 
+#[In this section, we pivot to a new problem, the 
+#sc[Set Cover problem], which is a fundamental problem that 
+is one of the fundamental problems of approximation 
+algorithms.]
+
+Here is the problem statement: 
 #pb[#sc[Set Cover]][
   Given a universe $Omega = {u_1, dots, u_n}$ and a collection of subsets 
   $cal(S) = {S_1, dots, S_2}$ where $S_i subset.eq Omega$ for $1 <= i <= n$,
@@ -1618,12 +1721,29 @@ while exists (u,v) not covered by S:
   $
   union.big_(S_i in cal(C)) S_i = Omega
   $]
+
 #thm[][The $ln(n)$-approximation algorithm for $n = |Omega|$.]
+= Applications (#sc[Set Cover] Problem)
++ #[*Application 1.* Imagine that a company wants to hire 
+candidates such that all required skills are covered]
++ #[*Application 2.* "Fuzz" testing in software]
++ #[*Application 3.* A manufacturer wants to get all 
+items from different suppliers at minimum cost ]
 
-== Algorithm Intuition 
-- First apply greedy 
-  - Get the largest set first 
+= Algorithm Strategies (#sc[Set Cover Problem])
++ #[*Strategy 1.* Greedy Strategy]
++ #[*Strategy 2.* Linear/Integer Programming Strategy]
 
+#todo()
+
+= Greedy Approach Intuition (#sc[Set Cover Problem])
+#int[
+  Pick the set that maximizes the number of *new* elements 
+  covered by the set cover of $G$, denoted as $var("cover")(G)$
+]
+
+Here is the algorithm's pseudocode:
+#line(length: 100%)
 ```
 while (v_t != 0) 
   find S_i that covers most elements in U_t
@@ -1631,13 +1751,74 @@ while (v_t != 0)
   v_t+1 = v_t \ S_i
   t = t + 1 
 ```
+#line(length: 100%)
 
-#proof[][
-  We let $k=var("OPT")$. One set in _OPT_ has a size $>= n/k$. 
-  We observe that _ALG_ picks a set of size $>= n/k$, such that 
+= Greedy Approach Analysis (#sc[Set Cover] Problem)
+Given the greedy approach, let us make the following claim: 
+
+#clm[The greedy approximation algorithm for the #sc[Set Cover] problem 
+gives an $O(ln(n))$ approximation of the optimum.]
+#clm[If _OPT_ $= k$, then the greedy approximation algorithm 
+_ALG_ will find at most $k times ln(n)$ sets.]
+
+#let colred(x) = text(fill: red, $#x$)
+#let colbl(x) = text(fill: blue, $#x$)
+#proof[Proof for Greedy Approach Approximation][
+  #[Let $var("OPT") = k$, where $k$ is a number of sets (ie, the minimum
+  number of sets in order to construct a full set cover of $G$).
+  Additionally, let $n$ represent the number of elements in the 
+  universe $Omega$.]
+
+  + #[Since we know that $var("OPT") = k$, then 
+  there must exist a set of vertices that covers at least $1/k$-th of 
+  the remaining elements. ]
+    + #[We know that in order for $k$ sets to cover all $n$ elements 
+  in the universe $Omega$ that there must be on average $n/k$ elements 
+  per set. ]
+    + #[In terms of $n$, this would mean that each set, 
+    on average, contains $(n/k)/n = 1/k$th of the elements in 
+    $Omega$.]
+    + #[If each set did not have at least 
+    $1/k$th of the elements in $Omega$, then $var("OPT") > k$, which is 
+    false by definition of _OPT_.]
+
+  + #[The first set that _OPT_ chooses, denoted as $S_1$ 
+    will have a size of $>= n/k$. ]
+    + #[By (1)(a), (1)(b), (1)(c)]
+  + #[When _OPT_ picks $S_1$ such that $|S_1| >= n/k$, then 
+  the number of remaining elements in the set must be 
+  $n_1 <= n(1 - (1/k))$] 
+     #text(gray)[- #[...where $n_1$ represents the number of elements 
+  in the first state, after _OPT_ has removed elements from $Omega$ 
+  in order to add them to first set cover $S_1$.]]
+    + #[We can prove (3) using the following computation: 
+  $
+  ("num. elements remaining") &<= [colbl(("original num. elements")) \
+  &bl - bl colred(("size of set cover after 1 iteration"))] \
+  n_1 &<= [colbl(n) - colred(S_1)] \
+  n_1 &<= [colbl(n) - colred(n/k)] \
+  n_1 &<= n(1-1/k)
+  $ <msc1>
+      ]
+  + #[After _OPT_ chooses its first set cover $S_1$ after a single 
+iteration of the algorithm, then there must exist a set $S_2$ 
+with at least $(n_1)/(k-1)$ elements.]
+    #text(gray)[+ #[We can utilize similar logic to that in (1)(a-c)]]
+    + #[Given that _OPT_ $=k$, then the average number of elements 
+per set $k_i$ is $n_1/(k-1)$.]
+    + #[Given that there are $n_1$ elements remaining, this implies 
+that each set that _OPT_ can choose must be $(n_1/k)/n_1 = 1/k$]
+
+  + #[After the second iteration $S_2$, then the number of remaining 
+elements that are left uncovered, denoted as $n_2$ must be upper-bounded
+by $n_1(1- 1/(k-1))$]
+    + #[We simply just need to perform similar computations to @msc1
+  $
+  n_2 &<= [colbl(("num. elements in 1st iter")) - colred(("size of set cover after 2 iters."))] \ 
+  &<= [colbl(n_1) - colred((n_1)/k)]
+  $
+]
 $
-V_1 &= V_0 minus S_i \ 
-  |V_1| &= n - |S_i| <= n - n/k = n(1 - 1/k) \ 
   |V_2| &<<  (1-1/k) |V_1|  << (1-1/k)^2 times n   \ 
   |V_i| &<= (1-1/k)^i times n \
   (1-1/k)^(k ln(n)) &< 1/n
@@ -1719,10 +1900,13 @@ and then treat both vertices as the same vertex]
   sum_(i) w_i : S_i subset.eq cal(C)
   $]
 
-== Proof Strategy (#sc[Set Cover])
-#nt[Our basic strategy is to find the sets that cover the most amount 
+= Strategy 1: Layering Technique (#sc[Weighted Set Cover])
+#[In this section, we note the *layering technique* for 
+evaluating the #sc[Weighted Set Cover] problem.]
+#int[Our basic strategy is to find the sets that cover the most amount 
 of elements with the minimum possible cost. ]
-- Utilize induction
+#[The primary basis for this algorithm is to uitlize _induction_.
+The premise here is to just demonstrate that after ]
 - Determine that after $t$ steps, _ALG_ _does not_ cover 
 $
 e^(-w_t/var("OPT")) times n "elements"
@@ -1937,13 +2121,15 @@ thus, we utilize the objective function @tri1 with the new consraint @tri2.
 By utilizing this algorithmic solution, we will _not_ obtain a feasible 
 solution.
 
-#nt[For the homework, you want to modify this algorithm to achieve 
+#nt[For the homework, you want to modify this algorithm to 
+  achieve 
 a better approximation]
 
 == Discussing Feasibility of the Approximation Soluiton
 #rmk[][there r triangles in the graph]
 #[By our LP and its constraint, we know that for each edge, 
-its can either be part of triangle(s) or not (ie, it must be either $>= 
+its can either be part of triangle(s) or not (ie, it must be 
+either $>= 
 1/3$ or $0$)]
 
 == The Cost of the LP Solution
