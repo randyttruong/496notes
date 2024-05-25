@@ -1763,6 +1763,7 @@ _ALG_ will find at most $k times ln(n)$ sets.]
 
 #let colred(x) = text(fill: red, $#x$)
 #let colbl(x) = text(fill: blue, $#x$)
+#let colgr(x) = text(fill: gray, $#x$)
 #proof[Proof for Greedy Approach Approximation][
   #[Let $var("OPT") = k$, where $k$ is a number of sets (ie, the minimum
   number of sets in order to construct a full set cover of $G$).
@@ -1770,17 +1771,19 @@ _ALG_ will find at most $k times ln(n)$ sets.]
   universe $Omega$.]
 
   + #[Since we know that $var("OPT") = k$, then 
-  there must exist a set of vertices that covers at least $1/k$-th of 
-  the remaining elements. ]
+  there must exist a set of vertices that covers at least $n/k$ elements]
     + #[We know that in order for $k$ sets to cover all $n$ elements 
-  in the universe $Omega$ that there must be on average $n/k$ elements 
+  in the universe $Omega$ that there must be on average $>= n/k$ elements 
   per set. ]
-    + #[In terms of $n$, this would mean that each set, 
-    on average, contains $(n/k)/n = 1/k$th of the elements in 
-    $Omega$.]
     + #[If each set did not have at least 
-    $1/k$th of the elements in $Omega$, then $var("OPT") > k$, which is 
-    false by definition of _OPT_.]
+    $n/k$ elements in $Omega$, then $var("OPT") > k$, 
+    which is false by definition of _OPT_.]
+    #text(gray)[+ #[In terms of $n$, this would mean that each set, 
+    on average, contains $(n/k)/n = 1/k$th of the elements in 
+    $Omega$.]]
+    #text(gray)[+ #[If each set did not have at least 
+    $1/k$th of the elements in $Omega$, then $var("OPT") > k$, 
+    which is false by definition of _OPT_.]]
 
   + #[The first set that _OPT_ chooses, denoted as $S_1$ 
     will have a size of $>= n/k$. ]
@@ -1806,29 +1809,46 @@ with at least $(n_1)/(k-1)$ elements.]
     #text(gray)[+ #[We can utilize similar logic to that in (1)(a-c)]]
     + #[Given that _OPT_ $=k$, then the average number of elements 
 per set $k_i$ is $n_1/(k-1)$.]
-    + #[Given that there are $n_1$ elements remaining, this implies 
-that each set that _OPT_ can choose must be $(n_1/k)/n_1 = 1/k$]
 
   + #[After the second iteration $S_2$, then the number of remaining 
 elements that are left uncovered, denoted as $n_2$ must be upper-bounded
 by $n_1(1- 1/(k-1))$]
     + #[We simply just need to perform similar computations to @msc1
   $
-  n_2 &<= [colbl(("num. elements in 1st iter")) - colred(("size of set cover after 2 iters."))] \ 
-  &<= [colbl(n_1) - colred((n_1)/k)]
+  n_2 &<= [colbl(("num. elements in 1st iter")) - colred(("size of set 
+    cover after 2 iters."))] \ 
+  &<= [colbl(n_1) - colred((n_1)/(k-1))] \ 
+  &<= colbl(n_1)(1 - 1/(k-1)) \ 
+  &<= colbl(n(1-1/k))(1 - 1/(k-1)) bl bl bl bl bl colgr(triangle.stroked.b " by (51)") \ 
+  &<= colbl(n(1-1/k))(1 - 1/(k-1)) <= n(1-1/k)(1 - 1/(k))  \ 
+  &<= n times (1 - 1/k)^2\ 
   $
 ]
-$
-  |V_2| &<<  (1-1/k) |V_1|  << (1-1/k)^2 times n   \ 
-  |V_i| &<= (1-1/k)^i times n \
-  (1-1/k)^(k ln(n)) &< 1/n
-
-
-
-
-$
-
+  + #[The number of elements left after the $i$th selection from _OPT_ is given by 
+  $
+    n_i <= n times (1 - 1/k)^i
+  $
 ]
+    + #[By (1), (2), (3), (4), (5)]
+
+  + #[The number of elements left behind by _OPT_ approaches $<1/n$]
+    + #[Utilize upper bounds $1+ x <= e^x$
+  $
+  n_i <= n ( 1 - 1/k)^i <= n dot e^(-i/k) 
+  $
+]
+    + #[After $k times ln(n)$ iterations, the number of uncovered elements must 
+be less than $1$ (just multiply $k dot ln(n)$ with $n dot e^(-i/k)$).]
+
+$
+  colgr(|V_i| &<= (1-1/k)^i times n \r
+  (1-1/k)^(k ln(n)) &< 1/n ) bl bl bl colgr(triangle.stroked.b "what is this?")
+
+$
+  #[Thus, we demonstrate that in order for _ALG_ to construct a Minimum 
+  Set Cover of $G$, it must utilize $k times ln(n)$ iterations, which is 
+  $O(log(n))$, which implies that it is a $O(log(n))$ approximation of 
+  _OPT_, as required. ]]
 
 #pagebreak()
 #chap[Approximation Algorithms Pt. 2 
@@ -2149,7 +2169,574 @@ Thus by @70, $var("ALG") << 3 times var("OPT")$
 = Next Time 
 - LP-Duality
 
+#pagebreak()
+#chap[Approximation Algorithms (Part 3)]
+= Remarks 
++ In the last lecture, we discussed two problems: 
+  + #sc[Weighted Set Cover] Problem 
+    - Layering Solution (Combinatorial)
+    - Linear Programming Solution 
+  + #sc[Minimum Triangle-Free Edge-Deletion] Problem
+    - Linear Programming Solution
+
+= Lecture Skeleton 
+#[In this lecture we will be discussing three problems as well as 
+multiple ways to evaluate them utilizing various combinatorics, 
+linear programming, and even real analysis methods.]
++ #[#sc[Minimum $s-t$ Cut]] Problem
+  + Ellipsoid Technique 
+  + Linear Programming Technique 
+  + Metric Space Technique 
+
++ #[#sc[Multiway Cut/Multiterminal Cut]] Problem 
+  + Isolated Cut Heuristic (Combinatorics)
+  + Linear Programming 
+
++ #[#sc[Max Cut]] Problem
+  + Semi-definite Programming 
+
+= #sc[Minimum $s-t$ Cut] Problem
+#pb[#sc[Minimum $s-t$ Cut] Problem][
+  #[Given an directed graph $G = angle.l V, E angle.r$ 
+  with edge costs $c: E -> RR^+$. Let $s,t in V(G)$ 
+  be distinct vertices. ]
+
+  #[The #sc[Minimum $s-t$ Cut] problem is to find the 
+  cheapest set of edges $E' subset.eq E$ such that 
+  there is no $s-t$ path in $G-E'$.
+]
+]
+
+= Background 
+== The #sc[Ellipsoid Algorithm]
+#par[In this method, we will be utilizing the #sc[Ellipsoid 
+Algorithm] in order to solve the 
+  #sc[Minimum $s-t$ Cut] problem.]
+
+#dfn[#sc[Ellipsoid Algorithm]][
+#par[The #sc[Ellipsoid Algorithm] is a theoretically-polynomial
+  algorithm for evaluating linear programs.]
+]
+#par[The #sc[Ellipsoid Algorithm] works as follows:  
+  + #[Given a linear program, denoted as $cal(P)$, 
+  consider an initial ellipsoid that contains the 
+  feasible region of the answer]
+  + #[In each iteration of the algorithm, determine 
+  whether or not the center of the ellipsoid is a 
+  feasible solution to $cal(P)$ (ie, satisfies 
+  all constraints)]
+  + #[If not feasible, identify the violated constraint. 
+  The constraint acts as a hyperplane that separates the 
+  current center from the feasible region]
+  + #[Update the ellipsoid accordingly to the violated 
+  constraint]
+  + #[Repeat algorithm until ellipsoid is sufficiently 
+  small, which indicates that the center must be 
+  close to the optimal solution.]
+]
+
+#[Now, let us define what a _hyperplane_ is as well as a 
+_separation oracle_.]
+
+#dfn[Hyperplanes][A _hyperplane_ in $RR^(n)$ is any set 
+  of points in $n$-dimensional space that obey a 
+  _single_ linear constraint within a linear programming 
+  problem.
+    - #[In 3D, a hyperplane would be a plane, and we can 
+  generalize this for any $n$-dimensional space.]
+]
+
+#dfn[Separation Oracle][
+  A _separation oracle_ for a convex set 
+  $S subset.eq RR^n$ is a function that, given a 
+  point $x in RR^n$: 
+  + #[If $x in S$, then the separation oracle will 
+confirm that $x$ is feasible (ie, $x in S$)]
+  + #[If $x in.not S$, then the separation oracle 
+provides a vector $a in RR^n$ that defines the hyperplane 
+that separates $x$ from the feasible region $S$]
+    + #text(gray)[tbh this is not relevant for this 
+    application, since we'll just ignore all the 
+    wrong answers...]
+
+]
+
+
+
+= Solution 1: #sc[Ellipsoid Algorithm] (#sc[Minimum $s-t$ Cut])
+#[In order to evaluate the #sc[Minimum $s-t$ Cut] problem, let 
+us generalize the problem via linear programming, utilizing a 
+typical linear programming method, the #sc[Ellipsoid 
+  Algorithm]].
+
+#rmk[#sc[Minimum $s-t$ Cut] Problem][Given a directed 
+  $G = angle.l V, E angle.r$ the 
+  #sc[Minimum $s-t$ Cut] Problem seeks to find the 
+  minimum cost set of edges $E' in E(G)$ such that if 
+  $E'$ is removed, there is no path between two vertices 
+  $s$ and $t$.
+]
+
+#par[By way of the #sc[Ellipsoid Algorithm], we must 
+define and utilize a #sc[separation oracle], which will 
+offer us a metric for determining whether or not a point 
+$x in RR^n$ is part of our solution/feasible space $S$.] \
+
+#par[In the context of this problem, the separation oracle 
+will simply indicate whether or not a point $x$ is 
+a feasible solution.]
+
+#int[A separation oracle for the #sc[Minimum $s-t$ Cut] problem 
+  will indicate whether or not there exists a "good path"
+  from $s$ to $t$. In this case, we will consider 
+  a "good path" $P$ as having a weight that is $|P|<= 1$]
+ - #[Given some $x$, in this case a vector of $x$ that assigns values 
+ to each edge, we want to determine if for each path, a constraint 
+ is violated]
+$
+min sum_((u,v) in E(G)) X_((u,v))
+$
+such that $forall$ paths $P$ from $s$ to $t$: 
+$
+sum_((u,v) in P) x_((u,v)) >= 1 
+$
+
+such that $x_((u,v)) in [0,1]$
+
+- We want to utilize an "oracle" as a calback function 
+  - #[This oracle needs to be given a constraint that is 
+  violated within the LP ]
+- "I found a point $x$, is this point feasible?"
+- Ellipsoid algorithm
+
+$
+x_((u,v)) = cases(  
+  1", if feasible", 
+  0 "else"
+)
+$
+
+== Strategy 
+Let our Oracle be Dijkstra's algorithm
+- #[Looking at each path, if a path is not good, ie the distance 
+from $s$ to $t$ is less than 1, then we just add it to the constraints]
+
+= Alternative Stsrategy 
+- #[We utilize a new constraint]
+$
+x_((u,v)) = cases(  
+  1", if " (u in S, u in T, u in T, u in S) \ 
+  0,"if " (u,v in S or u,v in T)
+)
+$
+
+#let colgr(x) = text(gray)[$#x$]
+#dfn[Metric Space][Given a universe $Omega$ and a funciton $d$ where 
+  $
+  d: Omega times Omega -> RR^+ \ 
+  $
+  That upholds the following properties:
+  $
+  d(u,v) &= d(v,u) forall u,v in Omega  \ 
+  d(u, u) &= 0 \ 
+  colgr(d(u,v) &> 0 "if " u != v) \ 
+  d(u, w) &<= d(u,v) + d(v, w) bl bl colgr("triangle inequality!")
+
+  $
+]
+
+#rmk[LP][We want to minimize the sum of weights across all edges 
+  $
+  min sum_(u,v in E(G)) x_((u,v))
+  $
+  with the following constraints, which we derived from the 
+  definition of a metric space: 
+  + $x_((u,v)) = x_((v,u)) colgr("metric space property")$ 
+  + $x_((u,v)) >= 0 colgr("metric space property")$
+  + $forall u,v,w x_((u,w)) <= x_((u,v)) + x_((v,w)) colgr("metric space property")$
+  + $x_((s,t)) >= 1$colgr("metric space property")
+]
+
+Now that we have an LP defined for this problem, how can we exactly 
+deal with non-integral answers?
++ *Randomized Rounding*
++ *Threshold Rounding*
+  - #[Not optimal]
+
+= New Technique: Random Threshold
+
+#int[Given two vertices $s$ and $t$, draw a ball around $s$ or radius 
+$R$ (the set of all points $u$ around $r$ such that $var("dist")_((s,u)) <= r$, also 
+  denoted as $X_((s,u) <= R$).
+  $
+  var("ball")(s, R).
+  $
+  We observe that so long as $R in [0,1]$, then $t$ will always be outside of the ball.
+
+]
+Given this ball, let us pick a radius $R in (0,1)$, uniformly at random. 
+
+== Algorithm 
++ Let $S = var("ball")(s,R)$
++ Let $T = V - S $
+
+#[Now, given this new algorithm, what exactly is the expected value? What 
+is the approximation factor? ]
+
+= Algorithm Analysis 
+$
+EE["size of" (S,T)] = EE[sum_((u,v) in E(G)) XX] \ 
+XX = cases(
+  1", " (u,v) "is cut", 
+  0", otherwise"
+)
+$
+$
+= sum_((u,v) in E(G))  Pr((u,v) "is cut")
+$
+In order to find $Pr$, let us first make the assumption that 
+$
+x_((s,u)) <= x_((s,v))
+$
+by definition of the ball, we know that $(u,v)$ must be cut if and only if 
+$u$ is in the ball and $v$ is not in the ball  
+$
+Pr((u,v) "is cut") &= Pr(mat(x_((s,u)) <= R; x_((s,v)) > R)) \ 
+&= Pr(x_((s,u)) <= R < x_((s,v))) \ 
+&= Pr(R in [x_((s,u)), x_((s,v))]) \ 
+&= | x_((s,v)) - x_((s,u)) | <= x_((u,v)) 
+$
+
+Again, we know that $(u,v)$ is cut if and only if the radius is 
+larger than that of $(u,v)$
+- What other information can we extrapolate? 
+  - #[If we form a triangle between $s, u,$ and $v$, then we are able 
+to determine the distance form $(s,u)$ via the triangle inequality. ]
+$
+x_((s,v)) &<= x_((s,u)) + x_((u,v)) \ 
+x_((s,v)) - x_((s,u)) &<= x_((u,v)) \ 
+$ 
+
+Thus, 
+$
+EE["size of cut"] <= sum_((u,v) in E(G)) x_((u,v)) = var("LP") <= var("OPT")
+$
+
+$colgr("In summary, we demonstrated that it doesn't matter what cut we're taking, 
+its value must always be the same.")$
+
+#[For every cut ball$(s,r)$, the cost $= var("OPT")$]
+
+= #sc[Multiway Cut]/ #sc[Multiterminal Cut] Problem
+== Sources 
++ _Approximation Algorithms_ (Vazirani)
+  + Chapter 19 (Multiway Cut)
++ UIUC 598CSC: Approximation Algorithms 
+  + Lecture 7 (Multiway Cut and $k$-Cut Problem) *(THIS IS A REALLY GOOD SOURCE)*
+
+= Background (#sc[Multiway Cut/ Multiterminal Cut])
+Let us first re-define what a cut is: 
+== Graph Cuts 
+#dfn[Cut][
+  Given a connected, undirected graph $G = angle.l V, E angle.r$ with 
+  an assignment of weights to edges, $w: E -> RR^+$, a _cut_ is a 
+  partition of $V(G)$ into two sets $V'$ and $V(G) - V'$ and consists 
+  of all edges that have one endpoint in each partition.
+
+]
+
+Now, let us discuss a new problem, the #sc[Multiway Cut] problem.
+#pb[#sc[Multiway Cut] Problem][Given an undirected graph $G = (V,E)$ with 
+  edge weights $w: E -> RR^(+)$, and a set of 
+  terminals $S={s_1, dots, s_n} subset.eq V(G)$. A _multiway cut_ 
+  is a set of edges that leaves each of the terminals in a 
+  _separate component_. Find the minimum weight of such a set of 
+  edges $E' subset.eq E(G)$ where removing $E'$ from $G$ 
+  separates all terminals.
+
+  #v(0.25cm)
+  #[Let us define such a set of edges 
+  as the _isolating cut_.]]
+
+= Solutions (#sc[Multiway Cut/Multiterminal Cut])
+We observe that there are two primary ways of evaluating the 
+#sc[Multiway Cut] problem:  
++ #[Isolating Cut Heuristic (Combinatorics/Greedy)]
++ #[Linear Programming]
+
+In either case, whether it be the Isolating Cut Heuristic solution or 
+the linear programming solution, we make the following claim about the 
+approximation ratio for both solutions:
+#clm[There exists a 2-approximate algorithm that solves the 
+  #sc[Multiway Cut] problem, which we can formalize as being 
+  the following 
+  $
+  min [sum_((u,v) in E') x_(u v) ] colgr("is this formulation correct?")
+  $
+  where $x_(u v)$ represents the weight of the edge from 
+  vertex $u$ to vertex $v$ and $E'$ represents the _isolating cut_.
+
+  #[This semantically, of course, simply just refers to 
+the minimum total weight of all edges in the isolating cut
+$E'$.]
+]
+
+= #[Algorithm 1: Isolating Cut Heuristic Solution (#sc[Multiway 
+  Cut])]
+#[In this first solution, known as the #sc[Isolating Cut 
+Heuristic], we, as with most approximation algorithms, apply 
+a _greedy_ approach. 
+
+#[More specificlaly, we leverage the intuition of finding all
+necessary _isolating cuts_ to isolate each terminal $s_i$ from 
+each other.]
+
+After computing all _isolating cuts_, simply just union 
+the cuts in order to derive a cut that 
+isolates each terminal from each other.]
+
+#int[For each terminal $s_i$, find the _minimum isolating cut_ that removes it 
+  from all other terminals $s_j, i != j$. In practice, we will 
+  connect all other terminals $s_j, i != j$ to a new shared vertex $t$ with 
+  "uncuttable"/infinite weight edges.
+]
+
+#[By repeatedly finding the minimum isolating cut 
+for each of the terminals, we can find the 
+union between all of these minimum isolating cuts in order to 
+achieve a superset cut that isolates each terminal.]
+#nt[For the sake of lecture, Prof. Makarychev stated that we 
+union _all_ of these isolating cuts; however, the optimal solution 
+(as Makarychev also stated) 
+  requires us to just union the first $k-1$ cuts, where 
+  $k$ is the number of terminals.]
+#nt[If there are overlapping cuts-- we just disregard them.]
+
+= Algorithm Pseudocode: Isolating Cut Heuristic (#sc[Multiway Cut])
+#v(0.5cm)
+#line(length: 100%)
+```
+For each i = 1,...,k do 
+-> compute the minimum weight isolating cut C(i)
+end 
+
+union all isolating cuts C(i)
+```
+#line(length: 100%)
+
+#v(0.5cm)
+
+= Algorithm Analysis: Isolating Cut Heuristic (#sc[Multiway Cut])
+
+#[Now, let us analyze the algorithm and prove why the 
+Isolating Cut Heuristic is a 2-approximation of the 
+optimal solution.]
+
+#rmk[#sc[Multiway Cut] Problem][In the 
+  #sc[Multiway Cut] problem, we seek the 
+  _isolating cut_ $E' subset.eq E(G)$ of minimum weight, 
+  that isolates all terminals $S = {s_1, dots, s_k}$.
+  $
+  $
+]
+#rmk[Isolating Cut Heuristic Solution][For each 
+terminal $s_i in S$, we calculate the _minimum weight 
+  isolating cut_ that isolates $s_i$ from $s_j in S - {s_i}$. 
+At the end of the algorithm, we find the union of all such 
+minimum weight isolating cuts in order to form a superset cut 
+that isolates all terminals.]
+
+#thm[Isolating Cut Heuristic Accuracy][The Isolating Cut Heuristic is 
+  a 2-approximate solution to the #sc[Multiway Cut] problem.]
+
+#proof[Proof of Isolating Cut Heuristic Accuracy][
+
+  #par[In order to demonstrate that the Isolating Cut Heuristic 
+  is a 2-approximate solution to the #sc[Multiway Cut] problem, 
+we must first derive some terminology and some structures 
+for comparing the optimal solution _OPT_ to the 
+Isolating Cut Heuristic algorithm _ALG_.] \ 
+  
+  #par[Let us denote the _minimum isolating cuts_ that isolate each terminal 
+  in the set of terminals $S = {s_1, dots, s_k}$ as 
+$E_1, dots, E_k$. Let _OPT_ represent the optimal multiway 
+  cut of $G$, which we will denote as $E^*$.] \ 
+  #par[By definition, we understand that by removing the superset of 
+  cuts $E^*$ from the edges of the original graph $E(G)$, then 
+  we will have $k$ individual, connected components, denoted as 
+$V_1, dots, V_k$ where $V_i$ contains its corresponding terminal 
+$s_i$.] \ 
+  #par[Let $E^*_i$ represent the cut that separates the 
+component $V_i$ containing terminal $s_i$ from the rest 
+of the graph.] \ 
+  #par[Thus, 
+  $
+  E^* = union.big_(i=1)^k E^*_i
+  $
+]
+
+#par[Let $partial(V_i)$ represent the set of all edges 
+  leaving the component $V_i$, which we will call the 
+_edge boundary_ of $V_i$. Formally, we find that 
+
+$
+  partial(P_i) = {(u,v) : u in P_i, v in.not P_i}
+$ 
+]
+
+  With this background in mind, let us now formulate our proof. 
+
++ #[We observe that the weight of a minimum isolating cut 
+  for a terminal $s_i$ must be less than or equal to 
+  the weight of all edges leaving its corresponding component 
+  $V_i$. Mathematically, 
+
+  $
+  |E_i| < |partial(V_i)| "for all" 1 <= i <= k
+  $
+]
+  + #[This is true because $partial(V_i)$ is an isolating 
+cut of $s_i$ (and intuitively, the isolating cut can either 
+  consist of all of the outgoing edges of $V_i$ or less.)]
+
++ #[The weight of the set of the optimal solution is 
+equivalent to $1/2$ of the total weight of all edge 
+boundaries for all components $V_i$ for all $1 <= i <= k$. 
+
+  Formally,
+$
+E^* &= 1/2 sum_(i=1)^k |partial (V_i)| \ 
+  colgr(&>= 1/2 sum_(i=1)^k |E^*_i| "...i think this is wrong") \ 
+2 times E^* &= sum_(i=1)^k |partial (V_i)| \ 
+$ <comb1>
+]
+    + #[We observe that every edge in the superset of _isolated 
+  cuts_ must be incident to two components. (This makes sense intuitively 
+  because in order to isolate the different components, we must 
+  remove their ougoing edges.)]
+    + #[Given that each edge, in order to be within the superset of 
+  _isolated cuts_, must contain an endpoint in two unique 
+  components, then we need to _normalize_ the total weight by dividing 
+  the total weight of the edge boundaries by 2.]
+
+  #nt[The edge boundary of $V_i$, denoted as $partial(V_i)$, must 
+    isolate a terminal $s_i$, thus  this must be a feasible solution 
+    for a multiway cut.]
+
++ #[The Isolating Cut Heuristic is a 2-approximate algorithm 
+of _OPT_.]
+  + #[By 1(a), 2(a), 2(b)]
+
+#[In @comb1, we simply just showed that the Isolated Cut 
+  Heuristic is a feasible solution to the #sc[Multiway Cut]
+  Problem that is upper-bounded by the optimal solution. Thus, 
+  the Isolated Cut Heuristic must be 2-approximate 
+  of the optimal solution, as required.] ]  \ 
+
+#v(0.5cm)
+#line(length: 100%)
+#v(0.5cm)
+#par[Now that we have designed and analyzed a combinatorial/greedy 
+solution, let us now examine the linear programming solution.]
+
+= Algorithm 2: Linear Programming Solution (#sc[Multiway Cut])
+Let us define the following constraints: 
++ $x_((u,v)) = x_((v,u))$ 
++ $x_((u,v)) <= x_((u,v)) + x_((v,w))$ 
++ $x_((u,v)) >= 0$
++ $x_((t_i, t_j)) >= 1$
+
+#[We note that this is a *very similar* set of constraints to the single 
+terminal variation of this problem. As it turns out, there is a better 
+way of evaluating this problem.]
+
+#todo()
+
+= #sc[Max Cut] Problem
+#pb[#sc[Max Cut]][
+  Given a graph $G$, and two components $L$ and $R$, 
+  we want to maximize the number of cut edges in order to cut $G$ 
+  in $L$ and $R$.
+]
+
+= Naive Solution/Algorithm (#sc[Max Cut])
+We just split the graph into two parts randomly. 
+
+#clm[Utilizing the random assignment solution, there exists a 0.5-approximation 
+algorithm.]
+
+#dfn[Approximation Resistant Algorithms][]
+
+#proof[][
+  Let us first consider 
+  $
+  Pr((u,v) "is cut") &= \ 
+  &= 1/2  \ 
+  $
+  Thus, 
+  $
+  EE["cut edges"] = 1/2 times |E| >= 1/2 var("OPT")
+  $
+]
+
+#nt[It's worth noting that even a greedy algorithm can also 
+achieve $0.5$-approximation]
+
+= Improved Solution: Linear Programming (#sc[Max Cut] Problem)
+Let us define the following integer program 
+$
+max sum_((u,v) in E(G)) x_((u,v))
+$
+where it is $x$-metric and $x_((u,v)) in [0,1]$
+- #[This is a very weak LP, since essentially it allows us to just delete 
+all edges, which is feasible, but not worthwhile]
+
+LP is useless!
+#nt[]
+We want to now try semi-definite programming, which is essentially a 
+generalization of LP. 
+#int[We want to fix the graphs onto a high-dimensional sphere 
+  in high-dimensional space, thus the distance from each vertex to the 
+center is exactly 1.]
+
+$
+max sum_((u,v) in E(G)) ||X_u - X_v || 
+$
+such that  $||x_u|| = 1$
+
+#int[We want to maximize the distance between the vertices 
+within the high-dimensional space]
+
+#nt[As it turns out, no LP can solve this problem as is, we 
+  can only solve the new problem:]
+
+$
+max sum_((u,v) in E(G)) ||X_u - X_v ||^2
+$
+such that  $||x_u||^2 = 1$. 
+
+#[Now, we just have a lot of $X_u$'s and $X_v$'s in 
+high dimensional space. ]
+
+#[The ideal solution here is that the distance must 
+exist within $[-1, 1]$, in which we can delineate 
+into the $L$ and $R$ components.]
+
+Here is our new objective function: 
+$
+max sum_((u,v) in E(G)) (|| X_u - X_v||^2) / 4 colgr("we 
+  normalize using" 1/4)
+$
+
+#[*Next time.* We will discuss the actual algorithm, 
+which occurs whenever we cut a hyperplane randomly, and 
+split it into two halves $L$ and $R$. 
+]
+
+
+
 #unit[Dynamic Graph Algorithms][]
+#chap[]]
 
 #chap[Graph Orienting]
 
