@@ -18,7 +18,7 @@ jobs:
         run: typst compile main.typ new-main.pdf
       - name: git-push 
         run: | 
-          git config --global user.name "Github-Actions"
+          git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add new-main.pdf
           git commit -m "comipled typst"
