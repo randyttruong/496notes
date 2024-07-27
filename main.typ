@@ -3070,10 +3070,7 @@ We can perform this isolation for any $n$-
 dimensional linear-programming problem. 
 
 = Ball and Cone as LP Duality 
-Our constraints represent "counter forces"
-
-
-
+Our constraints represent "counter forces" and whatnot
 
 
 #unit[Dynamic Graph Algorithms][]
