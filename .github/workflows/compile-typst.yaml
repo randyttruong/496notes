@@ -5,9 +5,21 @@ jobs:
   compile-typst:  
     runs-on: ubuntu-latest 
     steps: 
-      - uses: actions/checkout@v4
-      - uses: typst-community/setup-typst@v3
+      - name: git-checkout 
+        uses: actions/checkout@v4
+      - name: install-typst
+        uses: typst-community/setup-typst@v3
         with:
           cache-dependency-path: requirements.typ
-      - run: typst compile main.typ new-main.pdf
+      - name: compile-typst
+        run: typst compile main.typ new-main.pdf
+      - name: git-push 
+        run: | 
+          git config --global user.name "Github-Actions"
+          git config --global user.email "github-actions@github.com"
+          git add new-main.pdf
+          git commit -m "comipled typst"
+          git push 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
