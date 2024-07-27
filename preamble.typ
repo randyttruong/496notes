@@ -51,6 +51,11 @@
   color: rgb("#530077"), 
 )
 
+#let intProps = (  
+  fill: rgb("#EDCCFC"),
+  outline: rgb("#7C11AA"),
+  color: rgb("#530077"), 
+)
 
 #let corProps = ( 
   fill: rgb(255,239,224), 
@@ -137,6 +142,18 @@
     stroke: clmProps.at("outline"),
     text(clmProps.at("color"))[
       #[*Claim.*] #align(left, [#body])],
+  )
+}
+
+#let int(body) = {
+  rect(
+    fill: intProps.at("fill"),
+    inset: 12pt,
+    radius: 4pt,
+    width: 100%,
+    stroke: intProps.at("outline"),
+    text(intProps.at("color"))[
+      #[*Intuition.*] #align(left, [#body])],
   )
 }
 

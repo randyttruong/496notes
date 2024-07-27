@@ -21,12 +21,14 @@
 #let var = math.italic
 
 #set heading(
-  numbering: "1.1.1.1.1."
+  numbering: "1.1.1.1.1"
 )
 
 #set math.equation(
   numbering: "(1)"
 )
+
+#set enum(numbering: "(1).(a)")
 
 #set terms(
   separator: [. ]
@@ -1447,7 +1449,7 @@ the other edges in the graph.]
   dependent) and $n$ is the size of the input/universe.
 ]
 
-== Algorithm Intuition 
+= FPT Algorithm Intuition (#sc[Vertex Cover] Problem) 
 In our FPT solution for the Vertex Cover problem, we employ 
 _two_ reduction steps that, informally: 
 
@@ -1460,27 +1462,25 @@ $k$ which is fixed, we are able to freely perform a _brute
 force_ algorithm on the input space, since it'll always 
 be upper bounded by an algorithm on $n$.]
 
-== Algorithm Design
-#[Given the vertex cover problem, which we will denote as a problem 
-$cal(Q)$, we define the two following reduction rules for 
+= Algorithm Design (#sc[Vertex Cover] FPT Solution)
+#[Given the #sc[Vertex Cover] problem, we define the two following reduction 
+rules for 
 an instance $(G^((i)), k^((i)))$, where $(G^((i)), k^((i)))$
 is defined as the $i$th vertex cover of $G$ that is of 
 size $k$.
-- #[*Reduction Rule 1.* If the $i$th vertex cover on $G$ of size $k$ possesses 
-an isolated vertex $v$, then remove $v$ from the graph. The 
-new instance is represented as $(G-v, k).$]
-- #[*Reduction Rule 2.* If there exists a vertex $v in G^((i))$ such that 
-$var("deg")(v) > k^((i))$, then delete $v$ and its incident 
-edges from $G$ and decrement the parameter $k$ by 1. The resulting 
-instance is $(G-v, k-1).$]
 
-#[We observe that Reduction Rule 2 really just follows from the following 
-claim:  
-#clm[If $G$ contains a vertex whose degree is at least $k$,
-then $v$ should be in every vertex cover of size at most $k$.]
-]
- 
-Utilizing these two reduction rules we perform the following 
+- #[*Reduction Rule 1.* Given an instance $(G^((i)), k^((i)))$ , if 
+there exists an isolated vertex $v$, then remove $v$ from the graph. The 
+resulting instance is represented as $(G^((i))-v, k^((i))).$]
+
+- #[*Reduction Rule 2.* Given an instance $(G^((i)), k^((i)))$, 
+if there exists a vertex $v in G^((i))$ such that 
+$var("deg")(v) > k^((i)) + 1$, then remove $v$ and its incident 
+edges from $G$.]  
+
+= Algorithm (#sc[Vertex Cover] FPT Solution)
+Utilizing the two FPT reduction rules, we derive the following 
+algorithm for the #sc[Vertex Cover] problem. 
 algorithm:  
 #v(0.5cm)
 ```
@@ -1497,103 +1497,298 @@ end
 
 ]
 
-- #[2 Instances]
-  - #[We want to use some reduction steps]
-  - #[Guarantee that if the original instance has some solution of $k$, then 
-  all other instances should have such a solution.]
-  - #[Likewise, if we know the solution for various instances, then we know 
-  the solution to global]
-  - #[Instances will have a size of $k$ (in the context of this problem, 
-we shall use size $k^2$)]
+// - #[2 Instances]
+//   - #[We want to use some reduction steps]
+//   - #[Guarantee that if the original instance has some solution of $k$, then 
+//   all other instances should have such a solution.]
+//   - #[Likewise, if we know the solution for various instances, then we know 
+//   the solution to global]
+//   - #[Instances will have a size of $k$ (in the context of this problem, 
+// we shall use size $k^2$)]
+// 
+// - Overview 
+//   - #[Utilize a sequence of reductions that reduce teh global problem into 
+//   variuos instances/sketches]
+//     - #[We call these smaller instances of the problem _kernels_, such 
+//     that the size of each kernel is $<= g(k)$]
+//     - #[With these kernels, we can utilize a _brute force algorithm_]
+//       - #[Randomly choose $k$ or $k'$ vertices and just verifying if 
+//       they're a valid cover]
+//       - #[This is fine because the algorithm is dependent on $k$, rather 
+//       than $n$]
+//       - #[Exponential on $k$]
+//       - #[We want to utilize an inductive argument, as if there's a solution for
+// one kernel of size $*$, then it should hold for the next, etc.]
 
-- Overview 
-  - #[Utilize a sequence of reductions that reduce teh global problem into 
-  variuos instances/sketches]
-    - #[We call these smaller instances of the problem _kernels_, such 
-    that the size of each kernel is $<= g(k)$]
-    - #[With these kernels, we can utilize a _brute force algorithm_]
-      - #[Randomly choose $k$ or $k'$ vertices and just verifying if 
-      they're a valid cover]
-      - #[This is fine because the algorithm is dependent on $k$, rather 
-      than $n$]
-      - #[Exponential on $k$]
-      - #[We want to utilize an inductive argument, as if there's a solution for 
-one kernel of size $*$, then it should hold for the next, etc.]
-
-#nt[Why is this better than greedy?...]
-
-#rmk[Kernelization][]
-
-== Argument Outline
-We utilize *two rules*:
-+ #[If $(G^(i), k^(i))$ (the $i$th vertex cover of size $k$) has 
-isolated vertices, then remove them]
-  - #[This doesn't affect the instance-- since there would never 
-  be a reason why we would want to keep them, since they won't affect 
-  the result]
-#nt[Duh, why would include vertices that don't matter?]
-#nt[This is recursive. We will use the $(i-1)$th vertex cover in order 
-to derive the $i$th vertex cover]
-+ #[If there exists a vertex $v in G^i$ such that $var("deg")(v) > k^i$,
-then we will add $v$ to the solution and remove $v$ and all 
-edges incident with it from $G$]
-
-#nt[If we have many edges that are incident to $u$, then just 
-remove $u$ and all edges that are incident with it. This will 
-result in various isolated vertices, which can be removed by rule (1)]
-
-== ...why does this work?
-#rmk[][We want a solution that is of cost at most $k$. If there's 
-a good vertex candidate-- just remove it since we know it must 
-be in the answer (or a valid answer).]
-=== Recurrence Relation 
-$
-G^((i+1)) = &(G^((i)) - u) \ and (&k^((i+1)) = k^((i)) - 1)
-$
-
-#[There must be $k^i$ edges incident to $u$. If not, then we would _eventually_
-remove the other vertices-- which wouldn't be optimal.
+#rmk[Kernelization][_Kernelization_ is a technique that 
+is utilized in parameterized algorithms in which, given
+an instance $(I, k)$ of a parameterized problem $Q$, 
+returns an (easier) equivalent instance $(I', k')$ of $Q$. 
 ]
 
-- #[If there are multiple vertices $v_i$ that are incident to $> k^(i)$ edges,
-then we just remove all of them.]
+= Algorithm Analysis (#sc[Vertex Cover] FPT Solution)
+Utilizing the two reduction rules defined in the algorithm, 
+let us make the following 
+// We utilize *two rules*:
+// + #[If $(G^(i), k^(i))$ (the $i$th vertex cover of size $k$) has 
+// isolated vertices, then remove them]
+//   - #[This doesn't affect the instance-- since there would never 
+//   be a reason why we would want to keep them, since they won't affect 
+//   the result]
+// #nt[Duh, why would include vertices that don't matter?]
+// #nt[This is recursive. We will use the $(i-1)$th vertex cover in order 
+// to derive the $i$th vertex cover]
+// + #[If there exists a vertex $v in G^i$ such that $var("deg")(v) > k^i$,
+// then we will add $v$ to the solution and remove $v$ and all 
+// edges incident with it from $G$]
+// 
+// #nt[If we have many edges that are incident to $u$, then just 
+// remove $u$ and all edges that are incident with it. This will 
+// result in various isolated vertices, which can be removed by rule (1)]
+// 
+// == ...why does this work?
+// #todo()
+// #rmk[][We want a solution that is of cost at most $k$. If there's 
+// a good vertex candidate-- just remove it since we know it must 
+// be in the answer (or a valid answer).]
+// === Recurrence Relation 
+// $
+// G^((i+1)) = &(G^((i)) - u) \ and (&k^((i+1)) = k^((i)) - 1)
+// $
+// 
+// #[There must be $k^i$ edges incident to $u$. If not, then we would _eventually_
+// remove the other vertices-- which wouldn't be optimal.
+// ]
+// 
+// - #[If there are multiple vertices $v_i$ that are incident to $> k^(i)$ edges,
+// then we just remove all of them.]
+// 
+// + #[If we can't apply rule (1) or rule (2):]
+//   - #[If graph $|G^i| > (k^((i)))^2$, then _there is no solution_]
+//   - #[Why is this the case?]
+// 
+#thm[#sc[Vertex Cover] FPT Solution Feasibility][
+  If $(G^((i)), k^((i)))$ is a yes-instance of 
+  the #sc[Vertex Cover] problem and no further reductions 
+  can be performed on it, then 
+  + #[The number of vertices in $G^((i))$ must be less than 
+  or equal to $k^2 + k$. Formally,
+  $
+  |V(G^((i)))| <= k^2 + k
+  $
+  ] 
+  + #[The number of edges in $G^((i))$ must be less than or 
+  equal to $k^2$. Formally,
+  $
+  |E(G^((i)))| <= k^2
+  $
+  ]
+]
+#proof[Proof to #sc[Vertex Cover] FPT Solution Feasibility][
+  We can prove #sc[Vertex Cover] FPT Solution Feasibility 
+  by way of direct proof. 
 
-+ #[If we can't apply rule (1) or rule (2):]
-  - #[If graph $|G^i| > (k^((i)))^2$, then _there is no solution_]
-  - #[Why is this the case?]
+  + #[If an instance $(G^((i)), k^(i))$ is a yes-instance 
+  and is irreducible, then it must follow that for all 
+  vertices that exist outside of the cover, then there 
+  must exist an edge inside of the cover that is incident 
+  to it. 
+  #par[Formally, we notate this as] 
+  $
+  forall v in (G^((i)) \\ S), exists e in E(G^((i))) "where" e = (u,v) or e = (v,u)
+  $
+  ]
+    + #[This is true by definition of #sc[Reduction Rule 1]. 
+      #text(gray)[- The instance of the graph $G^((i))$ must be connected.]]
+  + #[If an instance $(G^((i)), k^((i)))$ is a yes-instance 
+  and is irreducible, then the number of vertices not included 
+  in the vertex cover must be less than $k dot |S|.$ This, in turn, 
+  implies that the number of vertices in the graph must be 
+  upper-bounded by $(k+1) dot k$. 
+  #par[Formally, 
+    $
+    |V(G^((i)) \\ S)| <= k dot |S| => |V(G^((i)))| <= (k+1) dot k 
+    $
+  ]
+  ]
+    + #[$forall v in V(G^((i))), var(" deg")(v) <= k$
+    is true by definition of #sc[Reduction Rule 2].]
+      #text(gray)[- This is because we removed all vertices with higher degrees.
+    ]
+    + #[$|V(G^((i)) \\ S)| <= k dot |S|$ is true by 2(a).]
+      #text(gray)[- #[All vertices in the graph, and thus the cover
+      can have at most $k$ edges, so the number of vertices 
+      not in the cover is at most the number of vertices in the cover 
+      multiplied by the upper bound of edges coming out of each 
+      vertex.]]
+    + #[$|V(G^((i)))| <= (k+1) dot |S|$ is true by 
+    #sc[Reduction Rule 2] and 2(b).
+    ]
+      #text(gray)[- #[
+      By #sc[Reduction Rule 2], we know that the degree 
+      of any vertex is strictly less than $k+1$. Thus, it 
+      follows that the number of vertices in the graph 
+      must be striclty less than the number of vertices 
+      in $S$ multiplied by the upper bound $(k+1)$. 
+    ]]
+  + #[If an instance $(G^((i)), k^((i)))$ is a yes-instance 
+  and is irreducible, then the number of edges in $G^((i))$ is 
+  bounded by $<= k^2$.]
+    + #[This is true by definition of #sc[Reduction Rule 2]]
+      #text(gray)[- #[
+        Any vertex $v$ can have at most $k$ outgoing edges, 
+        to which those vertices can have at most 
+        $k$ outgoing edges.  
+      ]]
+    
+  + QED 
+    + #[By (1) and (2) and (3)]
+]
 
-#clm[If $G$ has $2^k^2$ vertices $->$ the number of edges in 
-$G>k^2$. If there exist a vetex cover of size $<= k$, then it cuases $G <= k^2$
-edges]
-== Approximation Algorithm Approach
+Utilizing our #sc[Vertex Cover] Feasibility Theorem, we can 
+now derive #sc[Reduction Rule 3], which will prove that 
+the FPT algorithm will always create a solution to the 
+#sc[Vertex Cover] Problem.
+
+- #[*Reduction Rule 3.* Let $(G^((i)), k^(i))$ be an input 
+  instance of the #sc[Vertex Cover] problem in which 
+  #sc[Rule 1] and #sc[Rule 2] are not applicable. 
+  If $k < 0$ or $G^((i))$ has more than $k^2+k$ vertices 
+  or $G^((i))$ has more than $k^2$ edges, then $(G^((i)), k^((i)))$ is 
+  a no-instance.]
+  #text(gray)[- #[We know that if $k < 0$ or $G^((i))$ has more than $k^2+k$ vertices 
+  or $G^((i))$ has more than $k^2$ edges, then this 
+  must be invalid by the #sc[Vertex Cover] Feasibility Theorem.]]
+
+Using the theorem, we finally arrive at the following lemma 
+utilizing our former calculations: 
+#lem[][
+  If $G$ has $2^k k^2$, then $|E(G)| > k^2$. 
+  For any graph $G$ that has a vertex cover 
+  of size $<= k$, then $|E(G)| <= k^2$ edges.]
+
 #unit[Approximation Algorithms][#figure(
   image("./img/stonks.png"),
-  caption: [FFIE TO THE MOON],
+  caption: [\$FFIE TO THE MOON],
   )]
-#rmk[][We want to study approximation algorithms 
+
+#chap[Approximation Algorithms]
+= Citations 
++ #[_Approximation Algorithms _ (Vijay V. Vazirani)]
+  - Chapters Referenced 
+     + Chapter 1 (#sc[Introduction])
+      - #sc[An approximation algorithm for cardinality vertex cover ] (page 3)
+     + Chapter 2 (#sc[Set Cover]) (pgs. 15-26)
+     + Chapter 14 (#sc[Rounding Applied to Set Cover]) (pgs. 119-124)
++ #[UW CSE 421: Introduction to Algorithms]
+  + #[Lecture 23: Approximation Algorithms (Set Cover)]
++ #[CMU 15-451/651: Design and Analysis of Algorithms]
+  + #[Lecture \#17: Approximation Algorithms]
+
+= Introduction 
+In this new section, we consider the design and analysis 
+of *Approximation Algorithms*, which is another 
+field of algorithms that tackles the issue of evaluating 
+NP-hard and NP-complete problems with "good-enough" 
+accuracy in polynomial time. 
+
+#rmk[Motivation for Approximation Algorithms][We want 
+  to study approximation algorithms 
 because they provide a polynomial time way of computing 
 NP-hard problems.]
-#dfn[Approximation Algorithms][Algorithms that minimize cost such 
-that 
+#dfn[Approximation Algorithms][#[Approximation algorithms are 
+  algorithms that both maximize a *cost ratio* as well 
+  as a *value ratio* such that 
   $
-  "minimize cost:" var("ALG")(I) <= alpha times var("OPT")(I) 
-  "maximize value:" var("ALG")(I) >= alpha times var("OPT")(I)
+  "Cost Ratio" = var("ALG")(I) &<= alpha times var("OPT")(I) \
+  "Value Ratio" = var("ALG")(I) &>= alpha times var("OPT")(I)
 
   $
   where $alpha$ is the _approximation factor/ratio_ such that 
   $alpha <= 1$, and we strive for $alpha$ to be as close to 1 as 
   possible.
+]]
+
+#nt[Whenever we discuss Approximation Algorithms, we will 
+consider each algorithm based on their $alpha$ factor. For 
+  an approximation algorithm _ALG_ that has an approximation 
+  factor of $alpha$, then we consider that algorithm 
+  to be $alpha$-approximate. 
+
+  Additionally, we will also consider algorithms of 
+  paritcular $alpha$-approximate ratios. For example, 
+  we might discuss 2-approximation algorithms.
+  + #[2-approximation algorithms]
 ]
 
-= Strategy 1: Approximation Algorithm (#sc[Minimum Vertex Cover])
+= (Re-)Introduction to the #sc[Minimum Vertex Cover] problem 
+#rmk[FPT Approximation Solution for #sc[Minimum Vertex Cover]][]
+#todo()
 
+
+#[Now that we have some exposure on how we can _FPT reduce_
+the #sc[Minimum Vertex Cover] problem in order to get 
+an exact solution in $f(k) + var("poly")(n)$ time, let 
+us now analyze various _approximation algorithms_
+techniques for evlauating the #sc[Minimum Vertex Cover]
+problem. 
+
+]
+
+== #[Approximation Strategies for #sc[Minimum Vertex Cover]]
++ #[*Strategy 1.* Greedy Approximation]
++ #[*Strategy 2.* LP-Relaxation Approximation]
+
+= #[Strategy 1: Greedy Approximation Algorithm (#sc[Minimum 
+  Vertex Cover])]
+#[This section discusses the Greedy Approximation Algorithm 
+strategy for evaluating the #sc[minimum vertex cover] problem.]
+
+#[As with most greedy algorithms, we can sum up the behavior 
+of this algorithm as simply just adding vertices $v in V(G)$
+as long as there exists an uncovered edge that is incident 
+to it. ]
+
+== Algorithm Intuition (#sc[minimum vertex cover])
+#int[If we pick an arbitrary edge $e in E(G)$, then we know 
+that any vertex cover $var("cover")(G)$ must contain 
+at least one of the endpoints of such an edge. Thus, 
+  add both endpoints to the solution, remove all edges covered
+  by these endpoints, and repeat.]
+
+Here is the pseudocode for the Greedy Approximation Solution: 
+
+#line(length:100%)
+```pseudocode
+while exists (u,v) in E(G) such that (u,v) not covered by S do 
+    S.add(u)
+    S.add(v)
+    remove all (m, n) in E(G) covered by S
+end
 ```
-while exists (u,v) not covered by S: 
-  add both u and v to S
-```
+#line(length:100%)
+
+Again, it is important to note that we are essentially doing 
+the following 
++ #[We iterate through all remaining edges in $G$] 
+  + #[If there is an edge in which at least one of the endpoints 
+  does not exist in $S$, then we just add the endpoints]
+  + #[Then, based on the new vertex cover $S$, remove all edges 
+  from the graph $G$ that are now covered by $S$]
+
+
+== Analysis (#sc[Minimum Vertex Cover])
+#[We find that based on the design of the algorithm, we 
+arrive at the following performance claim: 
+Claim
+]
+
+
 
 #clm[
-  Using the given strategy, 
+  #[Using the greedy approximation algorithm for the 
+  #sc[Minimum Vertex Cover] problem, we find that 
+the algorithm is 2-approximation. Mathematically: ]
   $
   var("ALG")(I) <= 2 times var("OPT")(I)
   $
@@ -1611,6 +1806,12 @@ while exists (u,v) not covered by S:
 ]
 
 = Problem 2: #sc[Set Cover] Problem 
+#[In this section, we pivot to a new problem, the 
+#sc[Set Cover problem], which is a fundamental problem that 
+is one of the fundamental problems of approximation 
+algorithms.]
+
+Here is the problem statement: 
 #pb[#sc[Set Cover]][
   Given a universe $Omega = {u_1, dots, u_n}$ and a collection of subsets 
   $cal(S) = {S_1, dots, S_2}$ where $S_i subset.eq Omega$ for $1 <= i <= n$,
@@ -1618,12 +1819,29 @@ while exists (u,v) not covered by S:
   $
   union.big_(S_i in cal(C)) S_i = Omega
   $]
+
 #thm[][The $ln(n)$-approximation algorithm for $n = |Omega|$.]
+= Applications (#sc[Set Cover] Problem)
++ #[*Application 1.* Imagine that a company wants to hire 
+candidates such that all required skills are covered]
++ #[*Application 2.* "Fuzz" testing in software]
++ #[*Application 3.* A manufacturer wants to get all 
+items from different suppliers at minimum cost ]
 
-== Algorithm Intuition 
-- First apply greedy 
-  - Get the largest set first 
+= Algorithm Strategies (#sc[Set Cover Problem])
++ #[*Strategy 1.* Greedy Strategy]
++ #[*Strategy 2.* Linear/Integer Programming Strategy]
 
+#todo()
+
+= Greedy Approach Intuition (#sc[Set Cover Problem])
+#int[
+  Pick the set that maximizes the number of *new* elements 
+  covered by the set cover of $G$, denoted as $var("cover")(G)$
+]
+
+Here is the algorithm's pseudocode:
+#line(length: 100%)
 ```
 while (v_t != 0) 
   find S_i that covers most elements in U_t
@@ -1631,23 +1849,104 @@ while (v_t != 0)
   v_t+1 = v_t \ S_i
   t = t + 1 
 ```
+#line(length: 100%)
 
-#proof[][
-  We let $k=var("OPT")$. One set in _OPT_ has a size $>= n/k$. 
-  We observe that _ALG_ picks a set of size $>= n/k$, such that 
-$
-V_1 &= V_0 minus S_i \ 
-  |V_1| &= n - |S_i| <= n - n/k = n(1 - 1/k) \ 
-  |V_2| &<<  (1-1/k) |V_1|  << (1-1/k)^2 times n   \ 
-  |V_i| &<= (1-1/k)^i times n \
-  (1-1/k)^(k ln(n)) &< 1/n
+= Greedy Approach Analysis (#sc[Set Cover] Problem)
+Given the greedy approach, let us make the following claim: 
 
+#clm[The greedy approximation algorithm for the #sc[Set Cover] problem 
+gives an $O(ln(n))$ approximation of the optimum.]
+#clm[If _OPT_ $= k$, then the greedy approximation algorithm 
+_ALG_ will find at most $k times ln(n)$ sets.]
 
+#let colred(x) = text(fill: red, $#x$)
+#let colbl(x) = text(fill: blue, $#x$)
+#let colgr(x) = text(fill: gray, $#x$)
+#proof[Proof for Greedy Approach Approximation][
+  #[Let $var("OPT") = k$, where $k$ is a number of sets (ie, the minimum
+  number of sets in order to construct a full set cover of $G$).
+  Additionally, let $n$ represent the number of elements in the 
+  universe $Omega$.]
 
+  + #[Since we know that $var("OPT") = k$, then 
+  there must exist a set of vertices that covers at least $n/k$ elements]
+    + #[We know that in order for $k$ sets to cover all $n$ elements 
+  in the universe $Omega$ that there must be on average $>= n/k$ elements 
+  per set. ]
+    + #[If each set did not have at least 
+    $n/k$ elements in $Omega$, then $var("OPT") > k$, 
+    which is false by definition of _OPT_.]
+    #text(gray)[+ #[In terms of $n$, this would mean that each set, 
+    on average, contains $(n/k)/n = 1/k$th of the elements in 
+    $Omega$.]]
+    #text(gray)[+ #[If each set did not have at least 
+    $1/k$th of the elements in $Omega$, then $var("OPT") > k$, 
+    which is false by definition of _OPT_.]]
 
-$
+  + #[The first set that _OPT_ chooses, denoted as $S_1$ 
+    will have a size of $>= n/k$. ]
+    + #[By (1)(a), (1)(b), (1)(c)]
+  + #[When _OPT_ picks $S_1$ such that $|S_1| >= n/k$, then 
+  the number of remaining elements in the set must be 
+  $n_1 <= n(1 - (1/k))$] 
+     #text(gray)[- #[...where $n_1$ represents the number of elements 
+  in the first state, after _OPT_ has removed elements from $Omega$ 
+  in order to add them to first set cover $S_1$.]]
+    + #[We can prove (3) using the following computation: 
+  $
+  ("num. elements remaining") &<= [colbl(("original num. elements")) \
+  &bl - bl colred(("size of set cover after 1 iteration"))] \
+  n_1 &<= [colbl(n) - colred(S_1)] \
+  n_1 &<= [colbl(n) - colred(n/k)] \
+  n_1 &<= n(1-1/k)
+  $ <msc1>
+      ]
+  + #[After _OPT_ chooses its first set cover $S_1$ after a single 
+iteration of the algorithm, then there must exist a set $S_2$ 
+with at least $(n_1)/(k-1)$ elements.]
+    #text(gray)[+ #[We can utilize similar logic to that in (1)(a-c)]]
+    + #[Given that _OPT_ $=k$, then the average number of elements 
+per set $k_i$ is $n_1/(k-1)$.]
 
+  + #[After the second iteration $S_2$, then the number of remaining 
+elements that are left uncovered, denoted as $n_2$ must be upper-bounded
+by $n_1(1- 1/(k-1))$]
+    + #[We simply just need to perform similar computations to @msc1
+  $
+  n_2 &<= [colbl(("num. elements in 1st iter")) - colred(("size of set 
+    cover after 2 iters."))] \ 
+  &<= [colbl(n_1) - colred((n_1)/(k-1))] \ 
+  &<= colbl(n_1)(1 - 1/(k-1)) \ 
+  &<= colbl(n(1-1/k))(1 - 1/(k-1)) bl bl bl bl bl colgr(triangle.stroked.b " by (51)") \ 
+  &<= colbl(n(1-1/k))(1 - 1/(k-1)) <= n(1-1/k)(1 - 1/(k))  \ 
+  &<= n times (1 - 1/k)^2\ 
+  $
 ]
+  + #[The number of elements left after the $i$th selection from _OPT_ is given by 
+  $
+    n_i <= n times (1 - 1/k)^i
+  $
+]
+    + #[By (1), (2), (3), (4), (5)]
+
+  + #[The number of elements left behind by _OPT_ approaches $<1/n$]
+    + #[Utilize upper bounds $1+ x <= e^x$
+  $
+  n_i <= n ( 1 - 1/k)^i <= n dot e^(-i/k) 
+  $
+]
+    + #[After $k times ln(n)$ iterations, the number of uncovered elements must 
+be less than $1$ (just multiply $k dot ln(n)$ with $n dot e^(-i/k)$).]
+
+$
+  colgr(|V_i| &<= (1-1/k)^i times n \r
+  (1-1/k)^(k ln(n)) &< 1/n ) bl bl bl colgr(triangle.stroked.b "what is this?")
+
+$
+  #[Thus, we demonstrate that in order for _ALG_ to construct a Minimum 
+  Set Cover of $G$, it must utilize $k times ln(n)$ iterations, which is 
+  $O(log(n))$, which implies that it is a $O(log(n))$ approximation of 
+  _OPT_, as required. ]]
 
 #pagebreak()
 #chap[Approximation Algorithms Pt. 2 
@@ -1719,10 +2018,13 @@ and then treat both vertices as the same vertex]
   sum_(i) w_i : S_i subset.eq cal(C)
   $]
 
-== Proof Strategy (#sc[Set Cover])
-#nt[Our basic strategy is to find the sets that cover the most amount 
+= Strategy 1: Layering Technique (#sc[Weighted Set Cover])
+#[In this section, we note the *layering technique* for 
+evaluating the #sc[Weighted Set Cover] problem.]
+#int[Our basic strategy is to find the sets that cover the most amount 
 of elements with the minimum possible cost. ]
-- Utilize induction
+#[The primary basis for this algorithm is to uitlize _induction_.
+The premise here is to just demonstrate that after ]
 - Determine that after $t$ steps, _ALG_ _does not_ cover 
 $
 e^(-w_t/var("OPT")) times n "elements"
@@ -1937,13 +2239,15 @@ thus, we utilize the objective function @tri1 with the new consraint @tri2.
 By utilizing this algorithmic solution, we will _not_ obtain a feasible 
 solution.
 
-#nt[For the homework, you want to modify this algorithm to achieve 
+#nt[For the homework, you want to modify this algorithm to 
+  achieve 
 a better approximation]
 
 == Discussing Feasibility of the Approximation Soluiton
 #rmk[][there r triangles in the graph]
 #[By our LP and its constraint, we know that for each edge, 
-its can either be part of triangle(s) or not (ie, it must be either $>= 
+its can either be part of triangle(s) or not (ie, it must be 
+either $>= 
 1/3$ or $0$)]
 
 == The Cost of the LP Solution
@@ -1963,7 +2267,817 @@ Thus by @70, $var("ALG") << 3 times var("OPT")$
 = Next Time 
 - LP-Duality
 
+#pagebreak()
+#chap[Approximation Algorithms (Part 3)]
+= Remarks 
++ In the last lecture, we discussed two problems: 
+  + #sc[Weighted Set Cover] Problem 
+    - Layering Solution (Combinatorial)
+    - Linear Programming Solution 
+  + #sc[Minimum Triangle-Free Edge-Deletion] Problem
+    - Linear Programming Solution
+
+= Lecture Skeleton 
+#[In this lecture we will be discussing three problems as well as 
+multiple ways to evaluate them utilizing various combinatorics, 
+linear programming, and even real analysis methods.]
++ #[#sc[Minimum $s-t$ Cut]] Problem
+  + Ellipsoid Technique 
+  + Linear Programming Technique 
+  + Metric Space Technique 
+
++ #[#sc[Multiway Cut/Multiterminal Cut]] Problem 
+  + Isolated Cut Heuristic (Combinatorics)
+  + Linear Programming 
+
++ #[#sc[Max Cut]] Problem
+  + Semi-definite Programming 
+
+= #sc[Minimum $s-t$ Cut] Problem
+#pb[#sc[Minimum $s-t$ Cut] Problem][
+  #[Given an directed graph $G = angle.l V, E angle.r$ 
+  with edge costs $c: E -> RR^+$. Let $s,t in V(G)$ 
+  be distinct vertices. ]
+
+  #[The #sc[Minimum $s-t$ Cut] problem is to find the 
+  cheapest set of edges $E' subset.eq E$ such that 
+  there is no $s-t$ path in $G-E'$.
+]
+]
+
+= Background 
+== The #sc[Ellipsoid Algorithm]
+#par[In this method, we will be utilizing the #sc[Ellipsoid 
+Algorithm] in order to solve the 
+  #sc[Minimum $s-t$ Cut] problem.]
+
+#dfn[#sc[Ellipsoid Algorithm]][
+#par[The #sc[Ellipsoid Algorithm] is a theoretically-polynomial
+  algorithm for evaluating linear programs.]
+]
+#par[The #sc[Ellipsoid Algorithm] works as follows:  
+  + #[Given a linear program, denoted as $cal(P)$, 
+  consider an initial ellipsoid that contains the 
+  feasible region of the answer]
+  + #[In each iteration of the algorithm, determine 
+  whether or not the center of the ellipsoid is a 
+  feasible solution to $cal(P)$ (ie, satisfies 
+  all constraints)]
+  + #[If not feasible, identify the violated constraint. 
+  The constraint acts as a hyperplane that separates the 
+  current center from the feasible region]
+  + #[Update the ellipsoid accordingly to the violated 
+  constraint]
+  + #[Repeat algorithm until ellipsoid is sufficiently 
+  small, which indicates that the center must be 
+  close to the optimal solution.]
+]
+
+#[Now, let us define what a _hyperplane_ is as well as a 
+_separation oracle_.]
+
+#dfn[Hyperplanes][A _hyperplane_ in $RR^(n)$ is any set 
+  of points in $n$-dimensional space that obey a 
+  _single_ linear constraint within a linear programming 
+  problem.
+    - #[In 3D, a hyperplane would be a plane, and we can 
+  generalize this for any $n$-dimensional space.]
+]
+
+#dfn[Separation Oracle][
+  A _separation oracle_ for a convex set 
+  $S subset.eq RR^n$ is a function that, given a 
+  point $x in RR^n$: 
+  + #[If $x in S$, then the separation oracle will 
+confirm that $x$ is feasible (ie, $x in S$)]
+  + #[If $x in.not S$, then the separation oracle 
+provides a vector $a in RR^n$ that defines the hyperplane 
+that separates $x$ from the feasible region $S$]
+    + #text(gray)[tbh this is not relevant for this 
+    application, since we'll just ignore all the 
+    wrong answers...]
+
+]
+
+
+
+= Solution 1: #sc[Ellipsoid Algorithm] (#sc[Minimum $s-t$ Cut])
+#[In order to evaluate the #sc[Minimum $s-t$ Cut] problem, let 
+us generalize the problem via linear programming, utilizing a 
+typical linear programming method, the #sc[Ellipsoid 
+  Algorithm]].
+
+#rmk[#sc[Minimum $s-t$ Cut] Problem][Given a directed 
+  $G = angle.l V, E angle.r$ the 
+  #sc[Minimum $s-t$ Cut] Problem seeks to find the 
+  minimum cost set of edges $E' in E(G)$ such that if 
+  $E'$ is removed, there is no path between two vertices 
+  $s$ and $t$.
+]
+
+#par[By way of the #sc[Ellipsoid Algorithm], we must 
+define and utilize a #sc[separation oracle], which will 
+offer us a metric for determining whether or not a point 
+$x in RR^n$ is part of our solution/feasible space $S$.] \
+
+#par[In the context of this problem, the separation oracle 
+will simply indicate whether or not a point $x$ is 
+a feasible solution.]
+
+#int[A separation oracle for the #sc[Minimum $s-t$ Cut] problem 
+  will indicate whether or not there exists a "good path"
+  from $s$ to $t$. In this case, we will consider 
+  a "good path" $P$ as having a weight that is $|P|<= 1$]
+ - #[Given some $x$, in this case a vector of $x$ that assigns values 
+ to each edge, we want to determine if for each path, a constraint 
+ is violated]
+$
+min sum_((u,v) in E(G)) X_((u,v))
+$
+such that $forall$ paths $P$ from $s$ to $t$: 
+$
+sum_((u,v) in P) x_((u,v)) >= 1 
+$
+
+such that $x_((u,v)) in [0,1]$
+
+- We want to utilize an "oracle" as a calback function 
+  - #[This oracle needs to be given a constraint that is 
+  violated within the LP ]
+- "I found a point $x$, is this point feasible?"
+- Ellipsoid algorithm
+
+$
+x_((u,v)) = cases(  
+  1", if feasible", 
+  0 "else"
+)
+$
+
+== Strategy 
+Let our Oracle be Dijkstra's algorithm
+- #[Looking at each path, if a path is not good, ie the distance 
+from $s$ to $t$ is less than 1, then we just add it to the constraints]
+
+= Alternative Stsrategy 
+- #[We utilize a new constraint]
+$
+x_((u,v)) = cases(  
+  1", if " (u in S, u in T, u in T, u in S) \ 
+  0,"if " (u,v in S or u,v in T)
+)
+$
+
+#let colgr(x) = text(gray)[$#x$]
+#dfn[Metric Space][Given a universe $Omega$ and a funciton $d$ where 
+  $
+  d: Omega times Omega -> RR^+ \ 
+  $
+  That upholds the following properties:
+  $
+  d(u,v) &= d(v,u) forall u,v in Omega  \ 
+  d(u, u) &= 0 \ 
+  colgr(d(u,v) &> 0 "if " u != v) \ 
+  d(u, w) &<= d(u,v) + d(v, w) bl bl colgr("triangle inequality!")
+
+  $
+]
+
+#rmk[LP][We want to minimize the sum of weights across all edges 
+  $
+  min sum_(u,v in E(G)) x_((u,v))
+  $
+  with the following constraints, which we derived from the 
+  definition of a metric space: 
+  + $x_((u,v)) = x_((v,u)) colgr("metric space property")$ 
+  + $x_((u,v)) >= 0 colgr("metric space property")$
+  + $forall u,v,w x_((u,w)) <= x_((u,v)) + x_((v,w)) colgr("metric space property")$
+  + $x_((s,t)) >= 1$colgr("metric space property")
+]
+
+Now that we have an LP defined for this problem, how can we exactly 
+deal with non-integral answers?
++ *Randomized Rounding*
++ *Threshold Rounding*
+  - #[Not optimal]
+
+= New Technique: Random Threshold
+
+#int[Given two vertices $s$ and $t$, draw a ball around $s$ or radius 
+$R$ (the set of all points $u$ around $r$ such that $var("dist")_((s,u)) <= r$, also 
+  denoted as $X_((s,u) <= R$).
+  $
+  var("ball")(s, R).
+  $
+  We observe that so long as $R in [0,1]$, then $t$ will always be outside of the ball.
+
+]
+Given this ball, let us pick a radius $R in (0,1)$, uniformly at random. 
+
+== Algorithm 
++ Let $S = var("ball")(s,R)$
++ Let $T = V - S $
+
+#[Now, given this new algorithm, what exactly is the expected value? What 
+is the approximation factor? ]
+
+= Algorithm Analysis 
+$
+EE["size of" (S,T)] = EE[sum_((u,v) in E(G)) XX] \ 
+XX = cases(
+  1", " (u,v) "is cut", 
+  0", otherwise"
+)
+$
+$
+= sum_((u,v) in E(G))  Pr((u,v) "is cut")
+$
+In order to find $Pr$, let us first make the assumption that 
+$
+x_((s,u)) <= x_((s,v))
+$
+by definition of the ball, we know that $(u,v)$ must be cut if and only if 
+$u$ is in the ball and $v$ is not in the ball  
+$
+Pr((u,v) "is cut") &= Pr(mat(x_((s,u)) <= R; x_((s,v)) > R)) \ 
+&= Pr(x_((s,u)) <= R < x_((s,v))) \ 
+&= Pr(R in [x_((s,u)), x_((s,v))]) \ 
+&= | x_((s,v)) - x_((s,u)) | <= x_((u,v)) 
+$
+
+Again, we know that $(u,v)$ is cut if and only if the radius is 
+larger than that of $(u,v)$
+- What other information can we extrapolate? 
+  - #[If we form a triangle between $s, u,$ and $v$, then we are able 
+to determine the distance form $(s,u)$ via the triangle inequality. ]
+$
+x_((s,v)) &<= x_((s,u)) + x_((u,v)) \ 
+x_((s,v)) - x_((s,u)) &<= x_((u,v)) \ 
+$ 
+
+Thus, 
+$
+EE["size of cut"] <= sum_((u,v) in E(G)) x_((u,v)) = var("LP") <= var("OPT")
+$
+
+$colgr("In summary, we demonstrated that it doesn't matter what cut we're taking, 
+its value must always be the same.")$
+
+#[For every cut ball$(s,r)$, the cost $= var("OPT")$]
+
+= #sc[Multiway Cut]/ #sc[Multiterminal Cut] Problem
+== Sources 
++ _Approximation Algorithms_ (Vazirani)
+  + Chapter 19 (Multiway Cut)
++ UIUC 598CSC: Approximation Algorithms 
+  + Lecture 7 (Multiway Cut and $k$-Cut Problem) *(THIS IS A REALLY GOOD SOURCE)*
+
+= Background (#sc[Multiway Cut/ Multiterminal Cut])
+Let us first re-define what a cut is: 
+== Graph Cuts 
+#dfn[Cut][
+  Given a connected, undirected graph $G = angle.l V, E angle.r$ with 
+  an assignment of weights to edges, $w: E -> RR^+$, a _cut_ is a 
+  partition of $V(G)$ into two sets $V'$ and $V(G) - V'$ and consists 
+  of all edges that have one endpoint in each partition.
+
+]
+
+Now, let us discuss a new problem, the #sc[Multiway Cut] problem.
+#pb[#sc[Multiway Cut] Problem][Given an undirected graph $G = (V,E)$ with 
+  edge weights $w: E -> RR^(+)$, and a set of 
+  terminals $S={s_1, dots, s_n} subset.eq V(G)$. A _multiway cut_ 
+  is a set of edges that leaves each of the terminals in a 
+  _separate component_. Find the minimum weight of such a set of 
+  edges $E' subset.eq E(G)$ where removing $E'$ from $G$ 
+  separates all terminals.
+
+  #v(0.25cm)
+  #[Let us define such a set of edges 
+  as the _isolating cut_.]]
+
+= Solutions (#sc[Multiway Cut/Multiterminal Cut])
+We observe that there are two primary ways of evaluating the 
+#sc[Multiway Cut] problem:  
++ #[Isolating Cut Heuristic (Combinatorics/Greedy)]
++ #[Linear Programming]
+
+In either case, whether it be the Isolating Cut Heuristic solution or 
+the linear programming solution, we make the following claim about the 
+approximation ratio for both solutions:
+#clm[There exists a 2-approximate algorithm that solves the 
+  #sc[Multiway Cut] problem, which we can formalize as being 
+  the following 
+  $
+  min [sum_((u,v) in E') x_(u v) ] colgr("is this formulation correct?")
+  $
+  where $x_(u v)$ represents the weight of the edge from 
+  vertex $u$ to vertex $v$ and $E'$ represents the _isolating cut_.
+
+  #[This semantically, of course, simply just refers to 
+the minimum total weight of all edges in the isolating cut
+$E'$.]
+]
+
+= #[Algorithm 1: Isolating Cut Heuristic Solution (#sc[Multiway 
+  Cut])]
+#[In this first solution, known as the #sc[Isolating Cut 
+Heuristic], we, as with most approximation algorithms, apply 
+a _greedy_ approach. 
+
+#[More specificlaly, we leverage the intuition of finding all
+necessary _isolating cuts_ to isolate each terminal $s_i$ from 
+each other.]
+
+After computing all _isolating cuts_, simply just union 
+the cuts in order to derive a cut that 
+isolates each terminal from each other.]
+
+#int[For each terminal $s_i$, find the _minimum isolating cut_ that removes it 
+  from all other terminals $s_j, i != j$. In practice, we will 
+  connect all other terminals $s_j, i != j$ to a new shared vertex $t$ with 
+  "uncuttable"/infinite weight edges.
+]
+
+#[By repeatedly finding the minimum isolating cut 
+for each of the terminals, we can find the 
+union between all of these minimum isolating cuts in order to 
+achieve a superset cut that isolates each terminal.]
+#nt[For the sake of lecture, Prof. Makarychev stated that we 
+union _all_ of these isolating cuts; however, the optimal solution 
+(as Makarychev also stated) 
+  requires us to just union the first $k-1$ cuts, where 
+  $k$ is the number of terminals.]
+#nt[If there are overlapping cuts-- we just disregard them.]
+
+= Algorithm Pseudocode: Isolating Cut Heuristic (#sc[Multiway Cut])
+#v(0.5cm)
+#line(length: 100%)
+```
+For each i = 1,...,k do 
+-> compute the minimum weight isolating cut C(i)
+end 
+
+union all isolating cuts C(i)
+```
+#line(length: 100%)
+
+#v(0.5cm)
+
+= Algorithm Analysis: Isolating Cut Heuristic (#sc[Multiway Cut])
+
+#[Now, let us analyze the algorithm and prove why the 
+Isolating Cut Heuristic is a 2-approximation of the 
+optimal solution.]
+
+#rmk[#sc[Multiway Cut] Problem][In the 
+  #sc[Multiway Cut] problem, we seek the 
+  _isolating cut_ $E' subset.eq E(G)$ of minimum weight, 
+  that isolates all terminals $S = {s_1, dots, s_k}$.
+  $
+  $
+]
+#rmk[Isolating Cut Heuristic Solution][For each 
+terminal $s_i in S$, we calculate the _minimum weight 
+  isolating cut_ that isolates $s_i$ from $s_j in S - {s_i}$. 
+At the end of the algorithm, we find the union of all such 
+minimum weight isolating cuts in order to form a superset cut 
+that isolates all terminals.]
+
+#thm[Isolating Cut Heuristic Accuracy][The Isolating Cut Heuristic is 
+  a 2-approximate solution to the #sc[Multiway Cut] problem.]
+
+#proof[Proof of Isolating Cut Heuristic Accuracy][
+
+  #par[In order to demonstrate that the Isolating Cut Heuristic 
+  is a 2-approximate solution to the #sc[Multiway Cut] problem, 
+we must first derive some terminology and some structures 
+for comparing the optimal solution _OPT_ to the 
+Isolating Cut Heuristic algorithm _ALG_.] \ 
+  
+  #par[Let us denote the _minimum isolating cuts_ that isolate each terminal 
+  in the set of terminals $S = {s_1, dots, s_k}$ as 
+$E_1, dots, E_k$. Let _OPT_ represent the optimal multiway 
+  cut of $G$, which we will denote as $E^*$.] \ 
+  #par[By definition, we understand that by removing the superset of 
+  cuts $E^*$ from the edges of the original graph $E(G)$, then 
+  we will have $k$ individual, connected components, denoted as 
+$V_1, dots, V_k$ where $V_i$ contains its corresponding terminal 
+$s_i$.] \ 
+  #par[Let $E^*_i$ represent the cut that separates the 
+component $V_i$ containing terminal $s_i$ from the rest 
+of the graph.] \ 
+  #par[Thus, 
+  $
+  E^* = union.big_(i=1)^k E^*_i
+  $
+]
+
+#par[Let $partial(V_i)$ represent the set of all edges 
+  leaving the component $V_i$, which we will call the 
+_edge boundary_ of $V_i$. Formally, we find that 
+
+$
+  partial(P_i) = {(u,v) : u in P_i, v in.not P_i}
+$ 
+]
+
+  With this background in mind, let us now formulate our proof. 
+
++ #[We observe that the weight of a minimum isolating cut 
+  for a terminal $s_i$ must be less than or equal to 
+  the weight of all edges leaving its corresponding component 
+  $V_i$. Mathematically, 
+
+  $
+  |E_i| < |partial(V_i)| "for all" 1 <= i <= k
+  $
+]
+  + #[This is true because $partial(V_i)$ is an isolating 
+cut of $s_i$ (and intuitively, the isolating cut can either 
+  consist of all of the outgoing edges of $V_i$ or less.)]
+
++ #[The weight of the set of the optimal solution is 
+equivalent to $1/2$ of the total weight of all edge 
+boundaries for all components $V_i$ for all $1 <= i <= k$. 
+
+  Formally,
+$
+E^* &= 1/2 sum_(i=1)^k |partial (V_i)| \ 
+  colgr(&>= 1/2 sum_(i=1)^k |E^*_i| "...i think this is wrong") \ 
+2 times E^* &= sum_(i=1)^k |partial (V_i)| \ 
+$ <comb1>
+]
+    + #[We observe that every edge in the superset of _isolated 
+  cuts_ must be incident to two components. (This makes sense intuitively 
+  because in order to isolate the different components, we must 
+  remove their ougoing edges.)]
+    + #[Given that each edge, in order to be within the superset of 
+  _isolated cuts_, must contain an endpoint in two unique 
+  components, then we need to _normalize_ the total weight by dividing 
+  the total weight of the edge boundaries by 2.]
+
+  #nt[The edge boundary of $V_i$, denoted as $partial(V_i)$, must 
+    isolate a terminal $s_i$, thus  this must be a feasible solution 
+    for a multiway cut.]
+
++ #[The Isolating Cut Heuristic is a 2-approximate algorithm 
+of _OPT_.]
+  + #[By 1(a), 2(a), 2(b)]
+
+#[In @comb1, we simply just showed that the Isolated Cut 
+  Heuristic is a feasible solution to the #sc[Multiway Cut]
+  Problem that is upper-bounded by the optimal solution. Thus, 
+  the Isolated Cut Heuristic must be 2-approximate 
+  of the optimal solution, as required.] ]  \ 
+
+#v(0.5cm)
+#line(length: 100%)
+#v(0.5cm)
+#par[Now that we have designed and analyzed a combinatorial/greedy 
+solution, let us now examine the linear programming solution.]
+
+= Algorithm 2: Linear Programming Solution (#sc[Multiway Cut])
+Let us define the following constraints: 
++ $x_((u,v)) = x_((v,u))$ 
++ $x_((u,v)) <= x_((u,v)) + x_((v,w))$ 
++ $x_((u,v)) >= 0$
++ $x_((t_i, t_j)) >= 1$
+
+#[We note that this is a *very similar* set of constraints to the single 
+terminal variation of this problem. As it turns out, there is a better 
+way of evaluating this problem.]
+
+#todo()
+
+= #sc[Max Cut] Problem 
+In this section, we detail the #sc[Max Cut] problem, which is _another_ 
+graph theory problem that is NP-hard. 
+
+== Citations 
+
+== Background 
+#rmk[Cuts][Given a connected, undirected graph $G = angle.l V, E angle.r$
+with an assignment of weights to edges $w: E -> RR^(+)$, a _cut_ is a 
+partition of $V(G)$ into two sets $V'$ and $V(G) - V'$ and consists 
+of all edges that have one endpoint in each partition.]
+
+#pb[#sc[Max Cut]][
+  Given a graph $G$, and two components $L$ and $R$, 
+  we want to maximize the number of cut edges in order to cut $G$ 
+  in $L$ and $R$.
+]
+
+The primary idea here is that for any two components $L subset.eq 
+G$ and $R subset.eq G$, we want to maximize the number of edges 
+necessary to split $G$ into $L$ and $R$. 
+
+== #sc[Max Cut] Solutions 
+1. Randomized Algorithm
+2.
+
+= Naive Solution/Algorithm (#sc[Max Cut])
+We just split the graph into two parts randomly. 
+
+#clm[Utilizing the random assignment solution, there exists a 0.5-approximation 
+algorithm.]
+
+#dfn[Approximation Resistant Algorithms][]
+
+#proof[][
+  Let us first consider 
+  $
+  Pr((u,v) "is cut") &= \ 
+  &= 1/2  \ 
+  $
+  Thus, 
+  $
+  EE["cut edges"] = 1/2 times |E| >= 1/2 var("OPT")
+  $
+]
+
+#nt[It's worth noting that even a greedy algorithm can also 
+achieve $0.5$-approximation]
+
+= Improved Solution: Linear Programming (#sc[Max Cut] Problem)
+Let us define the following integer program 
+$
+max sum_((u,v) in E(G)) x_((u,v))
+$
+where it is $x$-metric and $x_((u,v)) in [0,1]$
+- #[This is a very weak LP, since essentially it allows us to just delete 
+all edges, which is feasible, but not worthwhile]
+
+LP is useless!
+#nt[]
+We want to now try semi-definite programming, which is essentially a 
+generalization of LP. 
+#int[We want to fix the graphs onto a high-dimensional sphere 
+  in high-dimensional space, thus the distance from each vertex to the 
+center is exactly 1.]
+
+$
+max sum_((u,v) in E(G)) ||X_u - X_v || 
+$
+such that  $||x_u|| = 1$
+
+#int[We want to maximize the distance between the vertices 
+within the high-dimensional space]
+
+#nt[As it turns out, no LP can solve this problem as is, we 
+  can only solve the new problem:]
+
+$
+max sum_((u,v) in E(G)) ||X_u - X_v ||^2
+$
+such that  $||x_u||^2 = 1$. 
+
+#[Now, we just have a lot of $X_u$'s and $X_v$'s in 
+high dimensional space. ]
+
+#[The ideal solution here is that the distance must 
+exist within $[-1, 1]$, in which we can delineate 
+into the $L$ and $R$ components.]
+
+Here is our new objective function: 
+$
+max sum_((u,v) in E(G)) (|| X_u - X_v||^2) / 4 colgr("we 
+  normalize using" 1/4)
+$
+
+#[*Next time.* We will discuss the actual algorithm, 
+which occurs whenever we cut a hyperplane randomly, and 
+split it into two halves $L$ and $R$. 
+]
+
+#chap[(05/28/24 Lecture)]
+= Semi-Definite Programming 
+
+= #sc[Max Cut] Problem, Continued
+== Structure of the Solution  
+1. We want to define a SDP-relaxation of the problem 
+2. Evaluate the SDP-relaxation of the problem and obtain 
+a set of nodes ${X_u}u in V$
+3. Pick a random unit vector $z$ (in practice, 
+a Gaussian vector or normal vector) such that 
+$
+L = { u : angle.l x_u, z angle.r <= 0 }  \
+R = { u : angle.l x_u, z angle.r > 0 } 
+$
+
+where $z$ is normal to the hyperplane. 
+ 
+== Solution (cont'd) #sc[Max Cut]
+#rmk[][We derived the objective function 
+$
+(|| X_u - X_v||^2) / 4
+$
+  as a means of _relaxing_ the constraints of the problem, 
+]
+We just want to determine whether or not a vertex exists 
+in the $L$ half or the $R$ half. 
+
+After imposing the graph into $n$-dimensional space, what 
+kind of algorithm can we utilize? 
+
+#int[Randomly choose a hyperplane that cuts our imposed 
+sphere into two halves, $L$ and $R$, respectively.]
+- #[Surprisingly, this is the _best_ possible algorithm 
+for evaluating this problem (under particular constraints)]
+
+= Algorithm #sc[Max Cut]
+
+= Algorithm Analysis #sc[Max Cut]
+#thm[Randomized #[Max Cut] Approximation][
+$
+  var("ALG") >= alpha dot "SDP"
+
+$
+  where $alpha$ is 0.87.
+
+]
+#rmk[][The optimal value must be upper-bounded by the 
+  solution to the relaxation of the SDP-problem. 
+$
+  var("OPT")  <= "SDP"
+$
+]
+
+We seek to show that 
+$
+EE[var("ALG")] >= alpha dot "SDP" >= alpha dot var("OPT")
+$
+
+We can achieve this by simply maximizing the following 
+expression for $alpha$:
+$
+sum_(u, v in E(G)) Pr("sign"(angle.l x_u, z angle.r ) != 
+  "sign" (angle.l x_v, z angle.r))
+>= alpha dot sum_((u,v) in E(G)) (*)
+$
+
+Let us now represent $X_u$ and $X_v$ using $theta$, versus 
+their explicit values: 
+$
+(*) &= (||x_u||^2 +||x_v||^2 - 2 angle.l x_u, x_v angle.r ) / 4  \ 
+&= (1 - angle.l x_u, x_v angle.r) / 2 \ 
+&= (1-cos(theta)) /  2 
+$
+
+As for the $Pr(-)$, we have 
+$
+Pr(-) &= theta / pi$.
+Now, we can perform the necessary substitutions in order 
+to obtain 
+$
+Pr(-) &>= Pr(*) \ 
+theta / pi & >= alpha dot (1- cos(theta)) / 2
+$
+
+From, here we can find a generalizable $alpha$ 
++ $theta = pi => alpha = 1$
++ $dots$
+
+For all possible theta values, however, we find 
+that the best possible one is located at 
+$theta^star = 3/4$. Given $theta^* = 3/4$, then,
+
+$
+&= (1 - cos(theta^star)) / 2   \ 
+&= (1 + sqrt(2)/2) / 2 \ 
+&approx.eq 0.87
+$
+
+In the worst possible case, then _ALG_ is 
+0.87-approximate, in the best-case.
+
+= Linear Programming 
+
+= Definition (Linear Programming)
+Given a set of variables 
+$
+X = (x_1, dots, x_n),
+$
+we seek to minimize some objective function: 
+$
+min angle.l c, x angle.r \ 
+dots \ 
+min c^T x \
+dots \ 
+min sum_i c_i dot x_i 
+$
+In which we possess constraints, which 
+have the form
+$
+A x >= b 
+$
+
+= Standard Forms of Linear Programs
+In the minimization sense, we will 
+be given a problem 
+$
+min (c ,x)
+$
+with which we have constraints 
+$A x >= b$ 
+where $x >= 0$. 
+
+\ which is also equivalent to 
+$
+max (b, y) 
+$
+for constraints 
+$
+A^T y <= c 
+$
+where $y >= 0$.
+
+== Intuition of Constraints 
+For a minimization problem, we 
+can think of  the constraints as simply 
+setting the floor for the problem, as 
+well as constraints setting a ceiling 
+in the context of a maximization problem. 
+
+#par[Whenever we are actually visualizing 
+this, the constraints are simply just a line, 
+and we want to determine on which side of the 
+line our solution should be in. If we had 
+multiple lines, then we would form a polygon.]
+
+
+== Intuition of Linear Programming
+We can think our linear program, then we just want 
+to find the minimum of the maximum value of that polytope. 
+
+#nt[The points that satisfy a LP are convex]
+
+= Defining Convexity 
+#dfn[Convexity][]
+
+
+= Solving Linear Programs 
+There are three common algorithms for solving LPs: 
++ #[Simplex Method]
++ #[Interior Point Method]
++ #[Ellipsoid Method]
+
+= Simplex Method 
+#dfn[Simplex Method][Given the constraints, examine a vertex 
+of the polytope and examine the incident edges,
+following the points until we cannot possibly minimize/
+maximize the value of the problem]
+
+= Interior Point Method 
+#dfn[Interior Point Method][Starting from _any_ interior 
+point of the polytope, walk down to the minimum value.]
+
+= Ellipsoid Method 
+#dfn[Ellipsoid Method][Define an ellipsoid $cal(E)$ 
+such that $cal(E)$ encapsulates the polytope. Then, 
+examine the center of such an ellipsoid, by which we split 
+the ellipse, then we just perform divide-and-conquer.]
+
+
+#chap[LP Duality]
+= Motivation 
+Let us minimize 
+$
+min x_1
+$
+given the following constraints: 
+$
+x_1 - 2 x_2 &>= 3 \ 
+x_1 + x_2 &>= 9 
+$
+Let us now consider two arbitrary points 
+$
+x_1 &= 7 \ 
+x_2 &= 2 
+$
+We know that $(7,2)$ is a feasible solution, 
+so we know that it is at least upper-bounded by 
+$(7,2)$. But how can we prove this?
+
+Isolate $x_1$
+$
+x_1 - 2x_2 &>= 3 \
+- 2(x_1 + x_2 &>= 9) \
+= 3x_1&>=21
+$
+
+We can perform this isolation for any $n$-
+dimensional linear-programming problem. 
+
+= Ball and Cone as LP Duality 
+Our constraints represent "counter forces"
+
+
+
+
+
 #unit[Dynamic Graph Algorithms][]
+#chap[]]
 
 #chap[Graph Orienting]
 

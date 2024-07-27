@@ -1,0 +1,13 @@
+name: compile-typst 
+run-name: ${{ github.actor }}-compile-typst
+on: [push] 
+jobs: 
+  compile-typst:  
+    runs-on: ubuntu-latest 
+    steps: 
+      - uses: actions/checkout@v4
+      - uses: typst-community/setup-typst@v3
+        with:
+          cache-dependency-path: requirements.typ
+      - run: typst compile main.typ main.pdf
+
