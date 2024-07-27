@@ -1449,7 +1449,7 @@ the other edges in the graph.]
   dependent) and $n$ is the size of the input/universe.
 ]
 
-== Algorithm Intuition 
+= FPT Algorithm Intuition (#sc[Vertex Cover] Problem) 
 In our FPT solution for the Vertex Cover problem, we employ 
 _two_ reduction steps that, informally: 
 
@@ -1462,27 +1462,25 @@ $k$ which is fixed, we are able to freely perform a _brute
 force_ algorithm on the input space, since it'll always 
 be upper bounded by an algorithm on $n$.]
 
-== Algorithm Design
-#[Given the vertex cover problem, which we will denote as a problem 
-$cal(Q)$, we define the two following reduction rules for 
+= Algorithm Design (#sc[Vertex Cover] FPT Solution)
+#[Given the #sc[Vertex Cover] problem, we define the two following reduction 
+rules for 
 an instance $(G^((i)), k^((i)))$, where $(G^((i)), k^((i)))$
 is defined as the $i$th vertex cover of $G$ that is of 
 size $k$.
-- #[*Reduction Rule 1.* If the $i$th vertex cover on $G$ of size $k$ possesses 
-an isolated vertex $v$, then remove $v$ from the graph. The 
-new instance is represented as $(G-v, k).$]
-- #[*Reduction Rule 2.* If there exists a vertex $v in G^((i))$ such that 
-$var("deg")(v) > k^((i))$, then delete $v$ and its incident 
-edges from $G$ and decrement the parameter $k$ by 1. The resulting 
-instance is $(G-v, k-1).$]
 
-#[We observe that Reduction Rule 2 really just follows from the following 
-claim:  
-#clm[If $G$ contains a vertex whose degree is at least $k$,
-then $v$ should be in every vertex cover of size at most $k$.]
-]
- 
-Utilizing these two reduction rules we perform the following 
+- #[*Reduction Rule 1.* Given an instance $(G^((i)), k^((i)))$ , if 
+there exists an isolated vertex $v$, then remove $v$ from the graph. The 
+resulting instance is represented as $(G^((i))-v, k^((i))).$]
+
+- #[*Reduction Rule 2.* Given an instance $(G^((i)), k^((i)))$, 
+if there exists a vertex $v in G^((i))$ such that 
+$var("deg")(v) > k^((i)) + 1$, then remove $v$ and its incident 
+edges from $G$.]  
+
+= Algorithm (#sc[Vertex Cover] FPT Solution)
+Utilizing the two FPT reduction rules, we derive the following 
+algorithm for the #sc[Vertex Cover] problem. 
 algorithm:  
 #v(0.5cm)
 ```
@@ -1499,75 +1497,175 @@ end
 
 ]
 
-- #[2 Instances]
-  - #[We want to use some reduction steps]
-  - #[Guarantee that if the original instance has some solution of $k$, then 
-  all other instances should have such a solution.]
-  - #[Likewise, if we know the solution for various instances, then we know 
-  the solution to global]
-  - #[Instances will have a size of $k$ (in the context of this problem, 
-we shall use size $k^2$)]
+// - #[2 Instances]
+//   - #[We want to use some reduction steps]
+//   - #[Guarantee that if the original instance has some solution of $k$, then 
+//   all other instances should have such a solution.]
+//   - #[Likewise, if we know the solution for various instances, then we know 
+//   the solution to global]
+//   - #[Instances will have a size of $k$ (in the context of this problem, 
+// we shall use size $k^2$)]
+// 
+// - Overview 
+//   - #[Utilize a sequence of reductions that reduce teh global problem into 
+//   variuos instances/sketches]
+//     - #[We call these smaller instances of the problem _kernels_, such 
+//     that the size of each kernel is $<= g(k)$]
+//     - #[With these kernels, we can utilize a _brute force algorithm_]
+//       - #[Randomly choose $k$ or $k'$ vertices and just verifying if 
+//       they're a valid cover]
+//       - #[This is fine because the algorithm is dependent on $k$, rather 
+//       than $n$]
+//       - #[Exponential on $k$]
+//       - #[We want to utilize an inductive argument, as if there's a solution for
+// one kernel of size $*$, then it should hold for the next, etc.]
 
-- Overview 
-  - #[Utilize a sequence of reductions that reduce teh global problem into 
-  variuos instances/sketches]
-    - #[We call these smaller instances of the problem _kernels_, such 
-    that the size of each kernel is $<= g(k)$]
-    - #[With these kernels, we can utilize a _brute force algorithm_]
-      - #[Randomly choose $k$ or $k'$ vertices and just verifying if 
-      they're a valid cover]
-      - #[This is fine because the algorithm is dependent on $k$, rather 
-      than $n$]
-      - #[Exponential on $k$]
-      - #[We want to utilize an inductive argument, as if there's a solution for 
-one kernel of size $*$, then it should hold for the next, etc.]
-
-#nt[Why is this better than greedy?...]
-
-#rmk[Kernelization][]
-
-== Argument Outline
-We utilize *two rules*:
-+ #[If $(G^(i), k^(i))$ (the $i$th vertex cover of size $k$) has 
-isolated vertices, then remove them]
-  - #[This doesn't affect the instance-- since there would never 
-  be a reason why we would want to keep them, since they won't affect 
-  the result]
-#nt[Duh, why would include vertices that don't matter?]
-#nt[This is recursive. We will use the $(i-1)$th vertex cover in order 
-to derive the $i$th vertex cover]
-+ #[If there exists a vertex $v in G^i$ such that $var("deg")(v) > k^i$,
-then we will add $v$ to the solution and remove $v$ and all 
-edges incident with it from $G$]
-
-#nt[If we have many edges that are incident to $u$, then just 
-remove $u$ and all edges that are incident with it. This will 
-result in various isolated vertices, which can be removed by rule (1)]
-
-== ...why does this work?
-#todo()
-#rmk[][We want a solution that is of cost at most $k$. If there's 
-a good vertex candidate-- just remove it since we know it must 
-be in the answer (or a valid answer).]
-=== Recurrence Relation 
-$
-G^((i+1)) = &(G^((i)) - u) \ and (&k^((i+1)) = k^((i)) - 1)
-$
-
-#[There must be $k^i$ edges incident to $u$. If not, then we would _eventually_
-remove the other vertices-- which wouldn't be optimal.
+#rmk[Kernelization][_Kernelization_ is a technique that 
+is utilized in parameterized algorithms in which, given
+an instance $(I, k)$ of a parameterized problem $Q$, 
+returns an (easier) equivalent instance $(I', k')$ of $Q$. 
 ]
 
-- #[If there are multiple vertices $v_i$ that are incident to $> k^(i)$ edges,
-then we just remove all of them.]
+= Algorithm Analysis (#sc[Vertex Cover] FPT Solution)
+Utilizing the two reduction rules defined in the algorithm, 
+let us make the following 
+// We utilize *two rules*:
+// + #[If $(G^(i), k^(i))$ (the $i$th vertex cover of size $k$) has 
+// isolated vertices, then remove them]
+//   - #[This doesn't affect the instance-- since there would never 
+//   be a reason why we would want to keep them, since they won't affect 
+//   the result]
+// #nt[Duh, why would include vertices that don't matter?]
+// #nt[This is recursive. We will use the $(i-1)$th vertex cover in order 
+// to derive the $i$th vertex cover]
+// + #[If there exists a vertex $v in G^i$ such that $var("deg")(v) > k^i$,
+// then we will add $v$ to the solution and remove $v$ and all 
+// edges incident with it from $G$]
+// 
+// #nt[If we have many edges that are incident to $u$, then just 
+// remove $u$ and all edges that are incident with it. This will 
+// result in various isolated vertices, which can be removed by rule (1)]
+// 
+// == ...why does this work?
+// #todo()
+// #rmk[][We want a solution that is of cost at most $k$. If there's 
+// a good vertex candidate-- just remove it since we know it must 
+// be in the answer (or a valid answer).]
+// === Recurrence Relation 
+// $
+// G^((i+1)) = &(G^((i)) - u) \ and (&k^((i+1)) = k^((i)) - 1)
+// $
+// 
+// #[There must be $k^i$ edges incident to $u$. If not, then we would _eventually_
+// remove the other vertices-- which wouldn't be optimal.
+// ]
+// 
+// - #[If there are multiple vertices $v_i$ that are incident to $> k^(i)$ edges,
+// then we just remove all of them.]
+// 
+// + #[If we can't apply rule (1) or rule (2):]
+//   - #[If graph $|G^i| > (k^((i)))^2$, then _there is no solution_]
+//   - #[Why is this the case?]
+// 
+#thm[#sc[Vertex Cover] FPT Solution Feasibility][
+  If $(G^((i)), k^((i)))$ is a yes-instance of 
+  the #sc[Vertex Cover] problem and no further reductions 
+  can be performed on it, then 
+  + #[The number of vertices in $G^((i))$ must be less than 
+  or equal to $k^2 + k$. Formally,
+  $
+  |V(G^((i)))| <= k^2 + k
+  $
+  ] 
+  + #[The number of edges in $G^((i))$ must be less than or 
+  equal to $k^2$. Formally,
+  $
+  |E(G^((i)))| <= k^2
+  $
+  ]
+]
+#proof[Proof to #sc[Vertex Cover] FPT Solution Feasibility][
+  We can prove #sc[Vertex Cover] FPT Solution Feasibility 
+  by way of direct proof. 
 
-+ #[If we can't apply rule (1) or rule (2):]
-  - #[If graph $|G^i| > (k^((i)))^2$, then _there is no solution_]
-  - #[Why is this the case?]
+  + #[If an instance $(G^((i)), k^(i))$ is a yes-instance 
+  and is irreducible, then it must follow that for all 
+  vertices that exist outside of the cover, then there 
+  must exist an edge inside of the cover that is incident 
+  to it. 
+  #par[Formally, we notate this as] 
+  $
+  forall v in (G^((i)) \\ S), exists e in E(G^((i))) "where" e = (u,v) or e = (v,u)
+  $
+  ]
+    + #[This is true by definition of #sc[Reduction Rule 1]. 
+      #text(gray)[- The instance of the graph $G^((i))$ must be connected.]]
+  + #[If an instance $(G^((i)), k^((i)))$ is a yes-instance 
+  and is irreducible, then the number of vertices not included 
+  in the vertex cover must be less than $k dot |S|.$ This, in turn, 
+  implies that the number of vertices in the graph must be 
+  upper-bounded by $(k+1) dot k$. 
+  #par[Formally, 
+    $
+    |V(G^((i)) \\ S)| <= k dot |S| => |V(G^((i)))| <= (k+1) dot k 
+    $
+  ]
+  ]
+    + #[$forall v in V(G^((i))), var(" deg")(v) <= k$
+    is true by definition of #sc[Reduction Rule 2].]
+      #text(gray)[- This is because we removed all vertices with higher degrees.
+    ]
+    + #[$|V(G^((i)) \\ S)| <= k dot |S|$ is true by 2(a).]
+      #text(gray)[- #[All vertices in the graph, and thus the cover
+      can have at most $k$ edges, so the number of vertices 
+      not in the cover is at most the number of vertices in the cover 
+      multiplied by the upper bound of edges coming out of each 
+      vertex.]]
+    + #[$|V(G^((i)))| <= (k+1) dot |S|$ is true by 
+    #sc[Reduction Rule 2] and 2(b).
+    ]
+      #text(gray)[- #[
+      By #sc[Reduction Rule 2], we know that the degree 
+      of any vertex is strictly less than $k+1$. Thus, it 
+      follows that the number of vertices in the graph 
+      must be striclty less than the number of vertices 
+      in $S$ multiplied by the upper bound $(k+1)$. 
+    ]]
+  + #[If an instance $(G^((i)), k^((i)))$ is a yes-instance 
+  and is irreducible, then the number of edges in $G^((i))$ is 
+  bounded by $<= k^2$.]
+    + #[This is true by definition of #sc[Reduction Rule 2]]
+      #text(gray)[- #[
+        Any vertex $v$ can have at most $k$ outgoing edges, 
+        to which those vertices can have at most 
+        $k$ outgoing edges.  
+      ]]
+    
+  + QED 
+    + #[By (1) and (2) and (3)]
+]
 
-#clm[If $G$ has $2^k^2$ vertices $->$ the number of edges in 
-$G>k^2$. If there exist a vetex cover of size $<= k$, then it cuases $G <= k^2$
-edges]
+Utilizing our #sc[Vertex Cover] Feasibility Theorem, we can 
+now derive #sc[Reduction Rule 3], which will prove that 
+the FPT algorithm will always create a solution to the 
+#sc[Vertex Cover] Problem.
+
+- #[*Reduction Rule 3.* Let $(G^((i)), k^(i))$ be an input 
+  instance of the #sc[Vertex Cover] problem in which 
+  #sc[Rule 1] and #sc[Rule 2] are not applicable. 
+  If $k < 0$ or $G^((i))$ has more than $k^2+k$ vertices 
+  or $G^((i))$ has more than $k^2$ edges, then $(G^((i)), k^((i)))$ is 
+  a no-instance.]
+  #text(gray)[- #[We know that if $k < 0$ or $G^((i))$ has more than $k^2+k$ vertices 
+  or $G^((i))$ has more than $k^2$ edges, then this 
+  must be invalid by the #sc[Vertex Cover] Feasibility Theorem.]]
+
+Using the theorem, we finally arrive at the following lemma 
+utilizing our former calculations: 
+#lem[][
+  If $G$ has $2^k k^2$, then $|E(G)| > k^2$. 
+  For any graph $G$ that has a vertex cover 
+  of size $<= k$, then $|E(G)| <= k^2$ edges.]
 
 #unit[Approximation Algorithms][#figure(
   image("./img/stonks.png"),
@@ -2652,12 +2750,31 @@ way of evaluating this problem.]
 
 #todo()
 
-= #sc[Max Cut] Problem
+= #sc[Max Cut] Problem 
+In this section, we detail the #sc[Max Cut] problem, which is _another_ 
+graph theory problem that is NP-hard. 
+
+== Citations 
+
+== Background 
+#rmk[Cuts][Given a connected, undirected graph $G = angle.l V, E angle.r$
+with an assignment of weights to edges $w: E -> RR^(+)$, a _cut_ is a 
+partition of $V(G)$ into two sets $V'$ and $V(G) - V'$ and consists 
+of all edges that have one endpoint in each partition.]
+
 #pb[#sc[Max Cut]][
   Given a graph $G$, and two components $L$ and $R$, 
   we want to maximize the number of cut edges in order to cut $G$ 
   in $L$ and $R$.
 ]
+
+The primary idea here is that for any two components $L subset.eq 
+G$ and $R subset.eq G$, we want to maximize the number of edges 
+necessary to split $G$ into $L$ and $R$. 
+
+== #sc[Max Cut] Solutions 
+1. Randomized Algorithm
+2.
 
 = Naive Solution/Algorithm (#sc[Max Cut])
 We just split the graph into two parts randomly. 
@@ -2732,6 +2849,230 @@ $
 which occurs whenever we cut a hyperplane randomly, and 
 split it into two halves $L$ and $R$. 
 ]
+
+#chap[(05/28/24 Lecture)]
+= Semi-Definite Programming 
+
+= #sc[Max Cut] Problem, Continued
+== Structure of the Solution  
+1. We want to define a SDP-relaxation of the problem 
+2. Evaluate the SDP-relaxation of the problem and obtain 
+a set of nodes ${X_u}u in V$
+3. Pick a random unit vector $z$ (in practice, 
+a Gaussian vector or normal vector) such that 
+$
+L = { u : angle.l x_u, z angle.r <= 0 }  \
+R = { u : angle.l x_u, z angle.r > 0 } 
+$
+
+where $z$ is normal to the hyperplane. 
+ 
+== Solution (cont'd) #sc[Max Cut]
+#rmk[][We derived the objective function 
+$
+(|| X_u - X_v||^2) / 4
+$
+  as a means of _relaxing_ the constraints of the problem, 
+]
+We just want to determine whether or not a vertex exists 
+in the $L$ half or the $R$ half. 
+
+After imposing the graph into $n$-dimensional space, what 
+kind of algorithm can we utilize? 
+
+#int[Randomly choose a hyperplane that cuts our imposed 
+sphere into two halves, $L$ and $R$, respectively.]
+- #[Surprisingly, this is the _best_ possible algorithm 
+for evaluating this problem (under particular constraints)]
+
+= Algorithm #sc[Max Cut]
+
+= Algorithm Analysis #sc[Max Cut]
+#thm[Randomized #[Max Cut] Approximation][
+$
+  var("ALG") >= alpha dot "SDP"
+
+$
+  where $alpha$ is 0.87.
+
+]
+#rmk[][The optimal value must be upper-bounded by the 
+  solution to the relaxation of the SDP-problem. 
+$
+  var("OPT")  <= "SDP"
+$
+]
+
+We seek to show that 
+$
+EE[var("ALG")] >= alpha dot "SDP" >= alpha dot var("OPT")
+$
+
+We can achieve this by simply maximizing the following 
+expression for $alpha$:
+$
+sum_(u, v in E(G)) Pr("sign"(angle.l x_u, z angle.r ) != 
+  "sign" (angle.l x_v, z angle.r))
+>= alpha dot sum_((u,v) in E(G)) (*)
+$
+
+Let us now represent $X_u$ and $X_v$ using $theta$, versus 
+their explicit values: 
+$
+(*) &= (||x_u||^2 +||x_v||^2 - 2 angle.l x_u, x_v angle.r ) / 4  \ 
+&= (1 - angle.l x_u, x_v angle.r) / 2 \ 
+&= (1-cos(theta)) /  2 
+$
+
+As for the $Pr(-)$, we have 
+$
+Pr(-) &= theta / pi$.
+Now, we can perform the necessary substitutions in order 
+to obtain 
+$
+Pr(-) &>= Pr(*) \ 
+theta / pi & >= alpha dot (1- cos(theta)) / 2
+$
+
+From, here we can find a generalizable $alpha$ 
++ $theta = pi => alpha = 1$
++ $dots$
+
+For all possible theta values, however, we find 
+that the best possible one is located at 
+$theta^star = 3/4$. Given $theta^* = 3/4$, then,
+
+$
+&= (1 - cos(theta^star)) / 2   \ 
+&= (1 + sqrt(2)/2) / 2 \ 
+&approx.eq 0.87
+$
+
+In the worst possible case, then _ALG_ is 
+0.87-approximate, in the best-case.
+
+= Linear Programming 
+
+= Definition (Linear Programming)
+Given a set of variables 
+$
+X = (x_1, dots, x_n),
+$
+we seek to minimize some objective function: 
+$
+min angle.l c, x angle.r \ 
+dots \ 
+min c^T x \
+dots \ 
+min sum_i c_i dot x_i 
+$
+In which we possess constraints, which 
+have the form
+$
+A x >= b 
+$
+
+= Standard Forms of Linear Programs
+In the minimization sense, we will 
+be given a problem 
+$
+min (c ,x)
+$
+with which we have constraints 
+$A x >= b$ 
+where $x >= 0$. 
+
+\ which is also equivalent to 
+$
+max (b, y) 
+$
+for constraints 
+$
+A^T y <= c 
+$
+where $y >= 0$.
+
+== Intuition of Constraints 
+For a minimization problem, we 
+can think of  the constraints as simply 
+setting the floor for the problem, as 
+well as constraints setting a ceiling 
+in the context of a maximization problem. 
+
+#par[Whenever we are actually visualizing 
+this, the constraints are simply just a line, 
+and we want to determine on which side of the 
+line our solution should be in. If we had 
+multiple lines, then we would form a polygon.]
+
+
+== Intuition of Linear Programming
+We can think our linear program, then we just want 
+to find the minimum of the maximum value of that polytope. 
+
+#nt[The points that satisfy a LP are convex]
+
+= Defining Convexity 
+#dfn[Convexity][]
+
+
+= Solving Linear Programs 
+There are three common algorithms for solving LPs: 
++ #[Simplex Method]
++ #[Interior Point Method]
++ #[Ellipsoid Method]
+
+= Simplex Method 
+#dfn[Simplex Method][Given the constraints, examine a vertex 
+of the polytope and examine the incident edges,
+following the points until we cannot possibly minimize/
+maximize the value of the problem]
+
+= Interior Point Method 
+#dfn[Interior Point Method][Starting from _any_ interior 
+point of the polytope, walk down to the minimum value.]
+
+= Ellipsoid Method 
+#dfn[Ellipsoid Method][Define an ellipsoid $cal(E)$ 
+such that $cal(E)$ encapsulates the polytope. Then, 
+examine the center of such an ellipsoid, by which we split 
+the ellipse, then we just perform divide-and-conquer.]
+
+
+#chap[LP Duality]
+= Motivation 
+Let us minimize 
+$
+min x_1
+$
+given the following constraints: 
+$
+x_1 - 2 x_2 &>= 3 \ 
+x_1 + x_2 &>= 9 
+$
+Let us now consider two arbitrary points 
+$
+x_1 &= 7 \ 
+x_2 &= 2 
+$
+We know that $(7,2)$ is a feasible solution, 
+so we know that it is at least upper-bounded by 
+$(7,2)$. But how can we prove this?
+
+Isolate $x_1$
+$
+x_1 - 2x_2 &>= 3 \
+- 2(x_1 + x_2 &>= 9) \
+= 3x_1&>=21
+$
+
+We can perform this isolation for any $n$-
+dimensional linear-programming problem. 
+
+= Ball and Cone as LP Duality 
+Our constraints represent "counter forces"
+
+
 
 
 
