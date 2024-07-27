@@ -9,5 +9,5 @@ jobs:
       - uses: typst-community/setup-typst@v3
         with:
           cache-dependency-path: requirements.typ
-      - run: typst compile paper.typ paper.pdf
+      - run: typst compile main.typ main.pdf
 
