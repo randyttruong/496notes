@@ -1,6 +1,9 @@
 name: compile-typst 
 run-name: ${{ github.actor }}-compile-typst
-on: [push] 
+on: 
+  push: 
+    branches: 
+      - master
 jobs: 
   compile-typst:  
     runs-on: ubuntu-latest 
